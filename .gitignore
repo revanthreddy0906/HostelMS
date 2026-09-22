@@ -12,3 +12,4 @@ htmlcov/
 .DS_Store
 frontend/node_modules/
 frontend/dist/
+.claude/settings.local.json
