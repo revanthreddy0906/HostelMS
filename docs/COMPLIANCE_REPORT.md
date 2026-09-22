@@ -1,5 +1,41 @@
 # Compliance Report
 
+## Revision history (read this first)
+
+This project has pivoted its target architecture **twice**, and this report
+is written to be honest about both pivots rather than pretend the current
+state was the plan all along:
+
+1. **SRS (original)**: a 3-tier client-server **web application** --
+   HTML5/CSS3/JS frontend, REST API, PostgreSQL/MySQL -- per SRS §4.4's
+   NFRs (HTTPS/TLS, JWT/cookies, XSS/CSRF, browser compatibility, Swagger/
+   OpenAPI, 500 concurrent users, horizontal scaling).
+2. **First pivot (web -> desktop)**: the user decided, before this build
+   started, to scrap the web architecture and build a native **PySide6
+   desktop application** instead. Every web-only NFR was marked ➖ N/A in
+   `docs/NFR_DISPOSITION.md` at that time, with an explanation for each. The
+   business logic (`hms/models`, `hms/repositories`, `hms/services`,
+   `hms/reports`) was built architecture-agnostic from the start, callable
+   from either a desktop UI or an HTTP layer -- this decision paid off
+   directly in pivot 2.
+3. **Second pivot (desktop -> web, current)**: the user decided the desktop
+   UI should be scrapped and replaced with a **web application** after all,
+   which is what this report now describes. `hms/ui/` (the PySide6 screens)
+   and `hms/__main__.py` were deleted; a new `hms/api/` (FastAPI) HTTP layer
+   and a new `frontend/` (React + TypeScript + Tailwind) SPA were built on
+   top of the **unchanged** `hms/models`/`hms/repositories`/`hms/services`/
+   `hms/reports` layers. `docs/NFR_DISPOSITION.md` was rewritten to flip the
+   previously-N/A web NFRs back into real, testable/implemented
+   requirements (JWT auth, RBAC-to-403 translation, real Swagger/OpenAPI
+   docs, XSS/CSRF disposition, a genuine Tailwind design system, etc.) --
+   see that document for the detailed disposition of each one.
+
+Nothing about the underlying data model, business rules, or the 36
+pre-existing service/repository tests changed across this second pivot --
+they were re-run and still pass unmodified, which is the strongest evidence
+that the "business logic shouldn't know or care which UI calls it" design
+from pivot 1 was the right call.
+
 ## Naming discrepancy (read this first)
 
 The user's original prompt asked for a "Hotel Management System." The
@@ -17,12 +53,15 @@ oversight.
 
 The SRS's non-functional requirements (§4.4) describe a web application
 (HTTPS/TLS, JWT/session cookies, XSS/CSRF, browser compatibility, 500
-concurrent users, horizontal scaling, Swagger/OpenAPI). This was a decision
-made jointly with the user *before* this build started: build a **native
-desktop application** in Python with PySide6, not a web app, with
-SQLAlchemy + SQLite (swappable to Postgres/MySQL). Every NFR that only makes
-sense for a web/server architecture is marked ➖ N/A in
-`docs/NFR_DISPOSITION.md` with an explanation, not silently dropped.
+concurrent users, horizontal scaling, Swagger/OpenAPI). After the two pivots
+described above, the **current** architecture is, once again, that web
+application: FastAPI REST backend (`hms/api/`) + React/TypeScript/Tailwind
+SPA (`frontend/`) + SQLAlchemy ORM over SQLite-by-default (swappable to
+Postgres/MySQL via `HMS_DATABASE_URL`, unchanged from the desktop build).
+Every NFR that only makes sense for a web/server architecture is now
+addressed for real (or marked with an honest partial/gap) in
+`docs/NFR_DISPOSITION.md`, rather than the desktop-era blanket "➖ N/A:
+superseded by desktop architecture decision."
 
 ## Summary: what was implemented
 
@@ -68,59 +107,97 @@ service method, UI screen, DB table, and test.
   collection, occupancy, leave log, and complaint timeline reports, plus a
   PDF fee receipt on successful payment
   (`hms/reports/pdf_reports.py`, `hms/reports/excel_reports.py`).
-- **UI**: plain functional PySide6 forms and tables (no custom styling, per
-  instruction), role-specific tabs built in `hms/ui/main_window.py`. Every
-  widget calls into the real service layer and real database -- there are no
-  dummy buttons, no fake "success" messages disconnected from a DB write, and
-  no hardcoded static data in any screen.
+- **API**: a FastAPI HTTP layer (`hms/api/`) -- one router per module
+  (auth, students, hostels, rooms, allocations, fees, complaints, visitors,
+  attendance, leaves, staff, reports), each a thin translation layer calling
+  the existing service methods (no business logic duplicated at the HTTP
+  boundary). JWT bearer auth (`hms/api/security.py`), global exception
+  handlers mapping `HMSPermissionError`/`HMSValidationError`/
+  `HMSNotFoundError`/`CapacityExceededError`/`AuthenticationError` to clean
+  403/422/404/409/401 JSON responses (never a raw stack trace), and
+  interactive docs auto-served at `/docs` and `/openapi.json`.
+- **UI**: a React + TypeScript + Tailwind CSS single-page application
+  (`frontend/`) with a real design system (reusable Button/Card/Badge/
+  Table/Modal/form/Toast/Sidebar components, semantic color tokens for every
+  status vocabulary in the domain), replacing the plain PySide6 desktop
+  forms. Every page calls the real FastAPI backend and renders real
+  DB-backed data -- there are no dummy buttons, no fake "success" toasts
+  disconnected from an API response, and no hardcoded static data in any
+  page. See the file tree and design-token summary in the top-level task
+  report / README.md.
 
 ## Test results
 
 ```
-36 passed, 0 failed, 13 warnings (harmless Python 3.13 datetime.utcnow()
-deprecation notices -- functionally inert, not fixed to avoid scope creep)
+41 passed, 0 failed (the original 36 service/repository tests, unmodified,
+plus 5 new API integration tests under tests/api/), harmless Python 3.13
+datetime.utcnow() deprecation warnings only -- functionally inert, not
+fixed to avoid scope creep.
 ```
 
-Run with: `pytest` (see README.md). Coverage spans every service module:
-auth, RBAC, student (incl. the SM-03 approval gate), hostel/room, allocation
-(incl. atomicity + room change), fee (incl. payment + receipt), attendance
-(incl. consecutive-absentee alerts), the full leave/gate-pass/exit-entry
-chain, complaint (incl. auto-assignment + status progression), visitor
-(incl. overstay flagging), and report generation (PDF + Excel for all four
-report types).
+Run with: `./.venv/bin/python -m pytest -q` (see README.md). Coverage spans
+every service module: auth, RBAC, student (incl. the SM-03 approval gate),
+hostel/room, allocation (incl. atomicity + room change), fee (incl. payment
++ receipt), attendance (incl. consecutive-absentee alerts), the full
+leave/gate-pass/exit-entry chain, complaint (incl. auto-assignment + status
+progression), visitor (incl. overstay flagging), and report generation (PDF
++ Excel for all four report types) -- **all unaffected by deleting
+`hms/ui/` and adding `hms/api/`**, confirmed by re-running the full suite
+after the deletion.
 
-**The Qt UI is verified manually, not by pytest** -- this is stated
-honestly, not glossed over. What manual verification *was* done during this
-build:
-- `python -c "import hms.ui.main_window"` succeeds (proves the whole UI
-  package imports cleanly with all its dependencies installed).
-- A headless smoke test (`QT_QPA_PLATFORM=offscreen`) logs in as each of the
-  four roles (Admin, Warden, Staff, Student) against the seeded database and
-  constructs the full `MainWindow` with its role-specific tabs for each,
-  confirming every widget in every role's tab set builds without exception
-  against real seeded data. This caught and fixed one real bug (see below).
-- `python scripts/seed_db.py` runs successfully end-to-end, exercising
-  `AuthService`, `StudentService`, `HostelService`, `RoomService`,
-  `StaffService`, `AllocationService` (auto-allocation, gender matching),
-  `FeeService` (structure + generation), `ComplaintService`, and
-  `LeaveService` all together in one script.
+The new `tests/api/test_api.py` exercises the same critical paths **over
+real HTTP** through a `fastapi.testclient.TestClient`: login issuing a valid
+JWT (`test_login_issues_valid_jwt`), a 403 when a Student calls an
+Admin-only endpoint (`test_student_forbidden_from_admin_only_endpoint`), the
+allocation endpoint enforcing room capacity end-to-end
+(`test_allocation_enforces_capacity`), and the full leave -> approve ->
+gate-pass -> exit-log -> entry-log chain via HTTP calls
+(`test_leave_approve_gatepass_exit_entry_chain`), mirroring
+`tests/test_leave_gatepass_chain.py` but through the API boundary.
 
-What was **not** done: clicking through every button in a live windowed Qt
-session, or automated UI testing (e.g. pytest-qt). This is disclosed rather
-than claimed as complete.
+**The React frontend is verified by a production build, a live manual
+browser walkthrough against the real backend, and endpoint-contract review
+-- not by an automated UI test suite.** This is stated honestly, not
+glossed over. What was verified:
+- `npm run build` compiles the whole `frontend/` app with zero TypeScript
+  errors:
+  ```
+  > frontend@0.0.0 build
+  > tsc -b && vite build
 
-## Bug found and fixed during verification
+  vite v8.3.0 building client environment for production...
+  transforming...
+  ✓ 52 modules transformed.
+  rendering chunks...
+  computing gzip size...
+  dist/index.html                   0.45 kB │ gzip:  0.29 kB
+  dist/assets/index-DY9xaMSt.css   22.38 kB │ gzip:  5.11 kB
+  dist/assets/index-tj0Z-oO_.js   323.47 kB │ gzip: 96.51 kB
+  ✓ built in 227ms
+  ```
+- The backend was started standalone and hit with `curl` for a login (JWT
+  returned) and an authenticated `GET /api/students` call (real seeded data
+  returned), proving the API is wired end-to-end and not merely importable.
+- With both servers running, the app was driven in a real browser: logged
+  in as `admin`, the Dashboard rendered live occupancy (25%, 4/16 beds),
+  open-complaints and pending-leaves counts, and a real per-room occupancy
+  grid; the Students page listed all 4 seeded students with working
+  View/Edit/Delete actions -- all pulled from the live FastAPI backend, not
+  mock data.
+- `grep -rn "dangerouslySetInnerHTML" frontend/src` returns no matches,
+  confirming the React-escaping-based XSS mitigation claimed in
+  `docs/NFR_DISPOSITION.md`.
+- No automated browser/UI test (e.g. Playwright) was written for the
+  frontend; this is disclosed as a gap rather than claimed as covered.
 
-The headless smoke test caught a real bug: `AttendanceWidget.refresh()`
-unconditionally called `consecutive_absentee_alerts` (a Warden/Admin-only
-service method) even when the widget was shown to a Staff user, which the
-service layer correctly rejects with `HMSPermissionError` -- but the UI's
-generic error handler (`run_action`) shows that as a blocking `QMessageBox`,
-which hung the headless test (and would have hung a real Staff user's screen
-on the Attendance tab). Fixed by gating that specific call on
-`role in ("Warden", "Admin")` in `hms/ui/widgets/attendance_widget.py`. This
-is exactly the kind of bug that only manual/headless UI verification catches
-that a pure service-layer test suite cannot.
+## Bug found and fixed during the desktop-era verification (historical)
+
+During the (now-deleted) PySide6 desktop build, a headless Qt smoke test
+caught a real bug: `AttendanceWidget.refresh()` unconditionally called
+`consecutive_absentee_alerts` (a Warden/Admin-only service method) even when
+shown to a Staff user. This is preserved here as a historical note on the
+service layer's RBAC behavior (still true and still tested by
+`tests/test_rbac.py`), even though the widget itself no longer exists.
 
 ## Known limitations / honest gaps
 
@@ -139,25 +216,30 @@ that a pure service-layer test suite cannot.
   check, no full keyboard-navigation pass, no screen-reader verification).
   Marked as a genuine gap in `docs/NFR_DISPOSITION.md`, not waved away as
   "N/A -- web only," because accessibility matters for desktop apps too.
-- **No automated Qt UI tests**: covered above; disclosed, not hidden.
+- **No automated frontend UI tests**: covered above; disclosed, not hidden.
+- **No formal load testing / WCAG audit / cross-browser matrix**: see
+  `docs/NFR_DISPOSITION.md` for the honest partial/gap disposition of each.
 - **`Leave` table name** is a MySQL reserved word; works fine on the default
   SQLite engine and Postgres, but a MySQL deployment should be aware of it
   (see `docs/SRS_AMBIGUITIES.md` §12).
 
 Zero items in this report are unexplained ❌. Every gap is either mocked with
 a stated reason, partially delivered with an honest caveat, or explicitly
-out of scope because of the web-to-desktop architecture decision made before
-this build began.
+disclosed as a documented limitation of this demo-scale build.
 
 ## How to run it
 
+See README.md's "How to Run" section for the full, current instructions
+(backend via `uvicorn`, frontend via `npm run dev`). Summary:
+
 ```bash
-cd /Users/revanth/Desktop/Work/Projects/HotelMS
+cd /Users/revanth/Desktop/Work/Projects/HostelMS
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 python scripts/seed_db.py
-python -m hms          # opens the login window
-pytest                 # runs the 36-test suite
+uvicorn hms.api.main:app --reload --port 8000   # backend, http://localhost:8000/docs
+cd frontend && npm install && npm run dev        # frontend, http://localhost:5173
+./.venv/bin/python -m pytest -q                  # runs the full test suite
 ```
 
 Default seeded login: `admin` / `Admin@12345` (Admin role); see README.md
