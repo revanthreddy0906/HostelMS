@@ -14,7 +14,7 @@ export function Card({ title, actions, children, className = '', ...rest }: Card
     >
       {(title || actions) && (
         <div className="flex items-center justify-between border-b border-neutral-100 px-5 py-3.5">
-          {title && <h3 className="text-sm font-semibold text-neutral-800">{title}</h3>}
+          {title && <h3 className="text-sm font-semibold text-neutral-900">{title}</h3>}
           {actions}
         </div>
       )}
@@ -34,20 +34,28 @@ export function StatCard({
   hint?: string;
   tone?: 'primary' | 'success' | 'warning' | 'danger' | 'info';
 }) {
-  const toneClasses: Record<string, string> = {
-    primary: 'text-primary-600 bg-primary-50',
-    success: 'text-success-600 bg-success-50',
-    warning: 'text-warning-600 bg-warning-50',
-    danger: 'text-danger-600 bg-danger-50',
-    info: 'text-info-600 bg-info-50',
+  const dotClasses: Record<string, string> = {
+    primary: 'bg-primary-600',
+    success: 'bg-success-600',
+    warning: 'bg-warning-600',
+    danger: 'bg-danger-600',
+    info: 'bg-info-600',
+  };
+  const valueClasses: Record<string, string> = {
+    primary: 'text-neutral-900',
+    success: 'text-success-700',
+    warning: 'text-warning-700',
+    danger: 'text-danger-700',
+    info: 'text-info-700',
   };
   return (
     <div className="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm">
-      <div className="text-xs font-medium uppercase tracking-wide text-neutral-500">{label}</div>
-      <div className={`mt-2 inline-flex rounded-lg px-2 py-1 text-2xl font-bold ${toneClasses[tone]}`}>
-        {value}
+      <div className="flex items-center gap-2 text-sm font-medium text-neutral-600">
+        <span className={`h-2 w-2 rounded-full ${dotClasses[tone]}`} aria-hidden="true" />
+        {label}
       </div>
-      {hint && <div className="mt-1.5 text-xs text-neutral-400">{hint}</div>}
+      <div className={`mt-3 text-3xl font-semibold tracking-tight tabular-nums ${valueClasses[tone]}`}>{value}</div>
+      {hint && <div className="mt-1 text-xs text-neutral-500">{hint}</div>}
     </div>
   );
 }

@@ -45,6 +45,16 @@
   --color-neutral-700: #374151;
   --color-neutral-800: #1f2937;
   --color-neutral-900: #111827;
+
+  /* Elevation: resting cards = sm, hover on interactive = md, modals/toasts = lg */
+  --shadow-sm: 0 1px 2px 0 rgb(17 24 39 / 0.05);
+  --shadow-md: 0 4px 8px -2px rgb(17 24 39 / 0.08), 0 2px 4px -2px rgb(17 24 39 / 0.05);
+  --shadow-lg: 0 12px 24px -6px rgb(17 24 39 / 0.14), 0 4px 8px -4px rgb(17 24 39 / 0.06);
+
+  /* Motion: one convention for all interactive elements */
+  --default-transition-duration: 150ms;
+  --default-transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
 }
 
 html, body, #root {
@@ -61,4 +71,47 @@ body {
 
 * {
   box-sizing: border-box;
+}
+
+/*
+ * Design-system conventions (applied consistently across components/pages):
+ *
+ * Elevation scale:
+ *   shadow-sm  -> resting cards, buttons, inputs
+ *   shadow-md  -> hover/focus state of interactive cards, dropdowns/popovers
+ *   shadow-lg  -> modals
+ *
+ * Motion:
+ *   transition-colors duration-150 ease-out  -> color-only hover/focus (buttons, links, table rows/headers, nav items)
+ *   transition-shadow duration-150 ease-out  -> elevation changes on hover/focus (clickable cards)
+ *
+ * Contrast:
+ *   Body/caption text on white or neutral-50 uses neutral-500 (#6b7280, 4.8:1 on white) or darker (neutral-400 is
+ *   reserved for placeholders and disabled/decorative content only, never for
+ *   informational copy like empty states).
+ *   Status pills use a `*-700` text on `*-100` background pairing for all five semantic
+ *   colors, which comfortably clears 4.5:1.
+ */
+
+@layer base {
+  a,
+  button,
+  [role='button'],
+  input,
+  select,
+  textarea,
+  summary {
+    transition-property: color, background-color, border-color, box-shadow, opacity;
+    transition-duration: 150ms;
+    transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      transition-duration: 0ms !important;
+      animation-duration: 0ms !important;
+    }
+  }
 }

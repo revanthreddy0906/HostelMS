@@ -1,4 +1,5 @@
 import { useMemo, useState, type ReactNode } from 'react';
+import { EmptyState, LoadingState } from './Feedback';
 
 export interface Column<T> {
   key: string;
@@ -6,6 +7,8 @@ export interface Column<T> {
   render: (row: T) => ReactNode;
   sortValue?: (row: T) => string | number;
   className?: string;
+  /** Right-align numeric columns (header and cells). */
+  align?: 'left' | 'right';
 }
 
 interface TableProps<T> {
@@ -46,7 +49,7 @@ export function Table<T>({ columns, rows, rowKey, loading, emptyMessage = 'No re
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-neutral-200">
+    <div className="overflow-x-auto rounded-lg border border-neutral-200 bg-white">
       <table className="min-w-full divide-y divide-neutral-200 text-sm">
         <thead className="bg-neutral-50">
           <tr>
@@ -54,12 +57,15 @@ export function Table<T>({ columns, rows, rowKey, loading, emptyMessage = 'No re
               <th
                 key={col.key}
                 onClick={() => toggleSort(col)}
-                className={`px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-neutral-500 ${
-                  col.sortValue ? 'cursor-pointer select-none hover:text-neutral-700' : ''
+                scope="col"
+                className={`px-4 py-3 text-xs font-medium uppercase tracking-wide text-neutral-600 transition-colors duration-150 ease-out ${
+                  col.align === 'right' ? 'text-right' : 'text-left'
+                } ${
+                  col.sortValue ? 'cursor-pointer select-none hover:text-neutral-900' : ''
                 }`}
               >
                 {col.header}
-                {sortKey === col.key && <span className="ml-1">{sortDir === 'asc' ? '↑' : '↓'}</span>}
+                {sortKey === col.key && <span className="ml-1" aria-hidden="true">{sortDir === 'asc' ? '↑' : '↓'}</span>}
               </th>
             ))}
           </tr>
@@ -67,21 +73,21 @@ export function Table<T>({ columns, rows, rowKey, loading, emptyMessage = 'No re
         <tbody className="divide-y divide-neutral-100 bg-white">
           {loading ? (
             <tr>
-              <td colSpan={columns.length} className="px-4 py-8 text-center text-neutral-400">
-                Loading…
+              <td colSpan={columns.length} className="p-0">
+                <LoadingState />
               </td>
             </tr>
           ) : sortedRows.length === 0 ? (
             <tr>
-              <td colSpan={columns.length} className="px-4 py-8 text-center text-neutral-400">
-                {emptyMessage}
+              <td colSpan={columns.length} className="p-0">
+                <EmptyState title={emptyMessage} />
               </td>
             </tr>
           ) : (
             sortedRows.map((row) => (
-              <tr key={rowKey(row)} className="hover:bg-neutral-50">
+              <tr key={rowKey(row)} className="transition-colors duration-150 ease-out hover:bg-neutral-50">
                 {columns.map((col) => (
-                  <td key={col.key} className={`px-4 py-2.5 text-neutral-700 ${col.className ?? ''}`}>
+                  <td key={col.key} className={`px-4 py-3 align-middle text-neutral-700 ${col.align === 'right' ? 'text-right tabular-nums' : ''} ${col.className ?? ''}`}>
                     {col.render(row)}
                   </td>
                 ))}

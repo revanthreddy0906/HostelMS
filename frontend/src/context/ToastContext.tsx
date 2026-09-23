@@ -45,30 +45,34 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={{ showToast, showError }}>
       {children}
-      <div className="fixed top-4 right-4 z-50 flex flex-col gap-2 w-80">
+      {/* Bottom-right, compact and stacked so toasts never cover page-header actions. */}
+      <div
+        aria-live="polite"
+        className="pointer-events-none fixed right-4 bottom-4 z-50 flex w-full max-w-sm flex-col items-end gap-2"
+      >
         {toasts.map((t) => (
           <div
             key={t.id}
-            role="status"
-            className={
-              'rounded-lg px-4 py-3 shadow-lg text-sm font-medium border animate-[fadein_.15s_ease-out] ' +
-              (t.kind === 'success'
-                ? 'bg-success-50 border-success-600/30 text-success-700'
-                : t.kind === 'error'
-                  ? 'bg-danger-50 border-danger-600/30 text-danger-700'
-                  : 'bg-info-50 border-info-600/30 text-info-700')
-            }
+            role={t.kind === 'error' ? 'alert' : 'status'}
+            className="pointer-events-auto flex w-full items-start gap-3 rounded-lg border border-neutral-200 bg-white px-3.5 py-3 text-sm shadow-lg"
           >
-            <div className="flex items-start justify-between gap-3">
-              <span>{t.message}</span>
-              <button
-                onClick={() => remove(t.id)}
-                className="text-neutral-400 hover:text-neutral-700 leading-none"
-                aria-label="Dismiss"
-              >
-                ×
-              </button>
-            </div>
+            <span
+              className={
+                'mt-1.5 h-2 w-2 shrink-0 rounded-full ' +
+                (t.kind === 'success' ? 'bg-success-600' : t.kind === 'error' ? 'bg-danger-600' : 'bg-info-600')
+              }
+              aria-hidden="true"
+            />
+            <span className="flex-1 text-neutral-800">{t.message}</span>
+            <button
+              onClick={() => remove(t.id)}
+              className="rounded p-0.5 text-neutral-500 transition-colors duration-150 ease-out hover:bg-neutral-100 hover:text-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-300"
+              aria-label="Dismiss"
+            >
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" className="h-3.5 w-3.5" aria-hidden="true">
+                <path d="M5 5l10 10M15 5L5 15" />
+              </svg>
+            </button>
           </div>
         ))}
       </div>

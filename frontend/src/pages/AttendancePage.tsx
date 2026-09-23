@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useToast } from '../context/ToastContext';
+import { EmptyState } from '../components/Feedback';
 import { PageHeader } from '../components/PageHeader';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
@@ -102,11 +103,11 @@ export function AttendancePage() {
 
       <Card title="Consecutive-absence alerts" className="mt-6">
         {alerts.length === 0 ? (
-          <p className="text-sm text-neutral-400">No students with concerning absence patterns.</p>
+          <EmptyState title="No attendance alerts" hint="No students with concerning absence patterns." />
         ) : (
           <ul className="divide-y divide-neutral-100 text-sm">
             {alerts.map((a) => (
-              <li key={a.studentid} className="flex items-center justify-between py-2">
+              <li key={a.studentid} className="flex items-center justify-between py-2.5">
                 <span>{a.name} ({a.rollnumber})</span>
                 <span className="inline-flex items-center rounded-full bg-danger-100 px-2.5 py-0.5 text-xs font-semibold text-danger-700">
                   {a.consecutive_absent_days} days absent

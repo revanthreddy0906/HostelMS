@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useToast } from '../context/ToastContext';
+import { EmptyState } from '../components/Feedback';
 import { PageHeader } from '../components/PageHeader';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
@@ -85,7 +86,7 @@ export function HostelsPage() {
   const hostelColumns: Column<Hostel>[] = [
     { key: 'name', header: 'Hostel', render: (h) => h.hostelname, sortValue: (h) => h.hostelname },
     { key: 'gender', header: 'Gender', render: (h) => h.gendertype },
-    { key: 'rooms', header: 'Total rooms', render: (h) => h.totalrooms },
+    { key: 'rooms', header: 'Total rooms', align: 'right', render: (h) => h.totalrooms },
     { key: 'status', header: 'Status', render: (h) => <Badge status={h.maintenancestatus || 'OPERATIONAL'} /> },
     { key: 'warden', header: 'Warden staff ID', render: (h) => h.wardenstaffid ?? '—' },
     {
@@ -103,7 +104,7 @@ export function HostelsPage() {
     { key: 'hostel', header: 'Hostel', render: (r) => hostels.find((h) => h.hostelid === r.hostelid)?.hostelname ?? r.hostelid },
     { key: 'number', header: 'Room', render: (r) => r.roomnumber, sortValue: (r) => r.roomnumber },
     { key: 'type', header: 'Type', render: (r) => r.roomtype },
-    { key: 'occ', header: 'Occupancy', render: (r) => `${r.occupiedbeds}/${r.capacity}` },
+    { key: 'occ', header: 'Occupancy', align: 'right', render: (r) => `${r.occupiedbeds}/${r.capacity}` },
   ];
 
   return (
@@ -131,11 +132,11 @@ export function HostelsPage() {
 
       <Card title="Occupancy overview" className="mt-6">
         {occupancy.length === 0 ? (
-          <p className="text-sm text-neutral-400">No occupancy data.</p>
+          <EmptyState title="No occupancy data" />
         ) : (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
             {occupancy.map((r) => (
-              <div key={`${r.hostel}-${r.room}`} className="rounded-lg border border-neutral-100 p-3 text-xs">
+              <div key={`${r.hostel}-${r.room}`} className="rounded-lg border border-neutral-200 p-3 text-xs">
                 <div className="font-semibold text-neutral-700">{r.hostel} · {r.room}</div>
                 <div className="mt-1 text-neutral-500">{r.occupied}/{r.capacity} ({r.free} free) — {r.type}</div>
               </div>

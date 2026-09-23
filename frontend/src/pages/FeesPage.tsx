@@ -116,8 +116,8 @@ function AdminFeesPage() {
   }
 
   const columns: Column<Fee>[] = [
-    { key: 'due', header: 'Amount due', render: (f) => `₹${f.amountdue}` },
-    { key: 'paid', header: 'Amount paid', render: (f) => `₹${f.amountpaid}` },
+    { key: 'due', header: 'Amount due', align: 'right', render: (f) => `₹${f.amountdue}` },
+    { key: 'paid', header: 'Amount paid', align: 'right', render: (f) => `₹${f.amountpaid}` },
     { key: 'duedate', header: 'Due date', render: (f) => f.duedate, sortValue: (f) => f.duedate },
     { key: 'status', header: 'Status', render: (f) => <Badge status={f.paymentstatus} /> },
     {
@@ -266,8 +266,8 @@ function StudentFeesPage() {
   }
 
   const columns: Column<Fee>[] = [
-    { key: 'due', header: 'Amount due', render: (f) => `₹${f.amountdue}` },
-    { key: 'paid', header: 'Amount paid', render: (f) => `₹${f.amountpaid}` },
+    { key: 'due', header: 'Amount due', align: 'right', render: (f) => `₹${f.amountdue}` },
+    { key: 'paid', header: 'Amount paid', align: 'right', render: (f) => `₹${f.amountpaid}` },
     { key: 'duedate', header: 'Due date', render: (f) => f.duedate, sortValue: (f) => f.duedate },
     { key: 'status', header: 'Status', render: (f) => <Badge status={f.paymentstatus} /> },
     {

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { EmptyState, LoadingState } from '../components/Feedback';
 import { PageHeader } from '../components/PageHeader';
 import { Card, StatCard } from '../components/Card';
 import { Badge } from '../components/Badge';
@@ -63,23 +64,25 @@ function AdminDashboard() {
     <div>
       <PageHeader title="Admin Dashboard" subtitle="Institution-wide overview" />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Occupancy" value={loading ? '…' : `${occupancyPct}%`} hint={`${totalOccupied}/${totalCapacity} beds`} tone="primary" />
+        <StatCard label="Occupancy" value={loading ? '…' : `${occupancyPct}%`} hint={`${totalOccupied} of ${totalCapacity} beds occupied`} tone="primary" />
         <StatCard label="Open Complaints" value={loading ? '…' : openComplaints} tone="warning" />
         <StatCard label="Pending Leaves" value={loading ? '…' : pendingLeaves} tone="info" />
         <StatCard
           label="Pending Fees"
-          value={pendingFees === -1 ? 'See Fees page' : pendingFees}
-          hint="Per-student lookup"
+          value={pendingFees === -1 ? '—' : pendingFees}
+          hint="Look up per student on the Fees page"
           tone="danger"
         />
       </div>
       <Card title="Room occupancy" className="mt-6">
-        {occupancy.length === 0 ? (
-          <p className="text-sm text-neutral-400">No occupancy data.</p>
+        {loading ? (
+          <LoadingState />
+        ) : occupancy.length === 0 ? (
+          <EmptyState title="No occupancy data" hint="Rooms will appear here once hostels are configured." />
         ) : (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
             {occupancy.slice(0, 12).map((r) => (
-              <div key={`${r.hostel}-${r.room}`} className="rounded-lg border border-neutral-100 p-3 text-xs">
+              <div key={`${r.hostel}-${r.room}`} className="rounded-lg border border-neutral-200 p-3 text-xs">
                 <div className="font-semibold text-neutral-700">{r.hostel} · {r.room}</div>
                 <div className="mt-1 text-neutral-500">{r.occupied}/{r.capacity} occupied ({r.type})</div>
               </div>
@@ -126,23 +129,23 @@ function StudentDashboard({ studentId }: { studentId: number | null }) {
 
   return (
     <div>
-      <PageHeader title="My Dashboard" />
+      <PageHeader title="My Dashboard" subtitle="Your room, fees and leave at a glance" />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Card title="Current room">
           {loading ? (
-            <p className="text-sm text-neutral-400">Loading…</p>
+            <LoadingState />
           ) : activeAllocation ? (
             <div>
-              <div className="text-2xl font-bold text-neutral-800">Room #{activeAllocation.roomid}</div>
+              <div className="text-2xl font-semibold tracking-tight text-neutral-900">Room #{activeAllocation.roomid}</div>
               <div className="mt-1 text-xs text-neutral-500">Since {activeAllocation.allocationdate}</div>
             </div>
           ) : (
-            <p className="text-sm text-neutral-400">No active allocation.</p>
+            <EmptyState title="No active allocation" />
           )}
         </Card>
         <Card title="Fee status">
           {loading ? (
-            <p className="text-sm text-neutral-400">Loading…</p>
+            <LoadingState />
           ) : pendingFee ? (
             <div>
               <Badge status={pendingFee.paymentstatus} />
@@ -156,7 +159,7 @@ function StudentDashboard({ studentId }: { studentId: number | null }) {
         </Card>
         <Card title="Active leave">
           {loading ? (
-            <p className="text-sm text-neutral-400">Loading…</p>
+            <LoadingState />
           ) : activeLeave ? (
             <div>
               <Badge status={activeLeave.status} />
@@ -165,7 +168,7 @@ function StudentDashboard({ studentId }: { studentId: number | null }) {
               </div>
             </div>
           ) : (
-            <p className="text-sm text-neutral-400">No active leave.</p>
+            <EmptyState title="No active leave" />
           )}
         </Card>
       </div>
@@ -195,19 +198,21 @@ function WardenDashboard() {
 
   return (
     <div>
-      <PageHeader title="Warden Dashboard" />
+      <PageHeader title="Warden Dashboard" subtitle="Approvals and attendance that need attention" />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <StatCard label="Pending leave approvals" value={loading ? '…' : pending.length} tone="warning" />
         <StatCard label="Attendance alerts" value={loading ? '…' : alerts.length} tone="danger" />
       </div>
       <Card title="Consecutive-absence alerts" className="mt-6">
-        {alerts.length === 0 ? (
-          <p className="text-sm text-neutral-400">No students with concerning absence patterns.</p>
+        {loading ? (
+          <LoadingState />
+        ) : alerts.length === 0 ? (
+          <EmptyState title="No attendance alerts" hint="No students with concerning absence patterns." />
         ) : (
           <ul className="divide-y divide-neutral-100 text-sm">
             {alerts.map((a) => (
-              <li key={a.studentid} className="flex items-center justify-between py-2">
-                <span>{a.name} ({a.rollnumber})</span>
+              <li key={a.studentid} className="flex items-center justify-between py-2.5">
+                <span className="text-neutral-800">{a.name} <span className="text-neutral-500">({a.rollnumber})</span></span>
                 <span className="inline-flex items-center rounded-full bg-danger-100 px-2.5 py-0.5 text-xs font-semibold text-danger-700">
                   {a.consecutive_absent_days} days absent
                 </span>
@@ -242,14 +247,19 @@ function StaffDashboard() {
   return (
     <div>
       <PageHeader title="Staff Dashboard" subtitle="Visitors currently on premises" />
-      <StatCard label="Visitors overstaying" value={loading ? '…' : overstaying.length} tone="danger" />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard label="Visitors on premises" value={loading ? '…' : rows.length} tone="info" />
+        <StatCard label="Visitors overstaying" value={loading ? '…' : overstaying.length} tone="danger" />
+      </div>
       <Card title="On-premises visitors" className="mt-6">
-        {rows.length === 0 ? (
-          <p className="text-sm text-neutral-400">No visitors currently checked in.</p>
+        {loading ? (
+          <LoadingState />
+        ) : rows.length === 0 ? (
+          <EmptyState title="No visitors on premises" hint="Checked-in visitors will appear here." />
         ) : (
           <ul className="divide-y divide-neutral-100 text-sm">
             {rows.map((r) => (
-              <li key={r.visitorid} className="flex items-center justify-between py-2">
+              <li key={r.visitorid} className="flex items-center justify-between py-2.5">
                 <span>
                   {r.visitorname} → Student #{r.studentid} ({r.hours_in.toFixed(1)}h)
                 </span>

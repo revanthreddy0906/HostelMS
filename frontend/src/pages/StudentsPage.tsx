@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { EmptyState, LoadingState } from '../components/Feedback';
 import { PageHeader } from '../components/PageHeader';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
@@ -336,8 +337,8 @@ function StudentSelfPage({ studentId }: { studentId: number | null }) {
     }
   }
 
-  if (loading) return <p className="text-sm text-neutral-400">Loading…</p>;
-  if (!profile) return <p className="text-sm text-neutral-400">Profile unavailable.</p>;
+  if (loading) return <LoadingState />;
+  if (!profile) return <EmptyState title="Profile unavailable" />;
 
   return (
     <div>

@@ -2,8 +2,8 @@ import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTML
 
 function Field({ label, error, children }: { label: string; error?: string; children: ReactNode }) {
   return (
-    <label className="mb-3 block">
-      <span className="mb-1 block text-xs font-medium text-neutral-600">{label}</span>
+    <label className={label ? 'mb-4 block' : 'block'}>
+      {label && <span className="mb-1.5 block text-sm font-medium text-neutral-700">{label}</span>}
       {children}
       {error && <span className="mt-1 block text-xs text-danger-600">{error}</span>}
     </label>
@@ -11,7 +11,7 @@ function Field({ label, error, children }: { label: string; error?: string; chil
 }
 
 const baseInput =
-  'w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-800 placeholder:text-neutral-400 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-100 disabled:bg-neutral-100';
+  'w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm shadow-sm transition-colors duration-150 ease-out text-neutral-800 placeholder:text-neutral-400 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-100 disabled:bg-neutral-100 disabled:text-neutral-500';
 
 interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   label: string;

@@ -6,6 +6,7 @@ import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { Modal } from '../components/Modal';
 import { Table, type Column } from '../components/Table';
+import { LoadingState } from '../components/Feedback';
 import { Badge } from '../components/Badge';
 import { TextField, TextareaField } from '../components/Form';
 import { leavesApi, studentsApi } from '../api/endpoints';
@@ -37,7 +38,7 @@ function GatePassImage({ leaveid }: { leaveid: number }) {
     };
   }, [leaveid, showError]);
 
-  if (!url) return <p className="text-xs text-neutral-400">Loading QR…</p>;
+  if (!url) return <LoadingState label="Loading QR…" />;
   return (
     <div className="flex flex-col items-center gap-2">
       <img src={url} alt={`Gate pass QR for leave ${leaveid}`} className="h-40 w-40 rounded-lg border border-neutral-200" />
