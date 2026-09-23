@@ -104,7 +104,7 @@ class StudentService:
             raise HMSNotFoundError(f"Student {studentid} not found")
         self.repo.delete(student)
 
-    @require_role("Admin")
+    @require_role("Admin", "Warden", "Staff")
     def list_students(self, current_user: CurrentUser):
         return self.repo.list_all()
 

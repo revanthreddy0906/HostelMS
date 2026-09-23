@@ -67,7 +67,7 @@ export const roomsApi = {
 // ---- Allocations ----
 export const allocationsApi = {
   listActive: () => api.get<Allocation[]>('/allocations'),
-  forStudent: (studentid: number) => api.get<Allocation[]>(`/allocations/student/${studentid}`),
+  forStudent: (studentid: number) => api.get<Allocation | null>(`/allocations/student/${studentid}`),
   auto: (studentid: number, alloc_date?: string) =>
     api.post<Allocation>('/allocations/auto', { studentid, alloc_date }),
   manual: (studentid: number, roomid: number, alloc_date?: string) =>

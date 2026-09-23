@@ -95,7 +95,7 @@ function StudentDashboard({ studentId }: { studentId: number | null }) {
   const { showError } = useToast();
   const [fees, setFees] = useState<Fee[]>([]);
   const [leaves, setLeaves] = useState<Leave[]>([]);
-  const [allocations, setAllocations] = useState<Allocation[]>([]);
+  const [activeAllocation, setActiveAllocation] = useState<Allocation | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -112,7 +112,7 @@ function StudentDashboard({ studentId }: { studentId: number | null }) {
         ]);
         setFees(f);
         setLeaves(l);
-        setAllocations(a);
+        setActiveAllocation(a);
       } catch (err) {
         showError(err, 'Failed to load your dashboard.');
       } finally {
@@ -121,7 +121,6 @@ function StudentDashboard({ studentId }: { studentId: number | null }) {
     })();
   }, [studentId, showError]);
 
-  const activeAllocation = allocations.find((a) => a.status.toUpperCase() === 'ACTIVE');
   const activeLeave = leaves.find((l) => l.status.toUpperCase() === 'APPROVED');
   const pendingFee = fees.find((f) => f.paymentstatus.toUpperCase() !== 'PAID');
 
