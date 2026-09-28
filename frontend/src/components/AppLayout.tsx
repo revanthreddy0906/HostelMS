@@ -14,7 +14,7 @@ export function AppLayout() {
     <TooltipProvider delayDuration={200}>
       <SidebarProvider>
         <AppSidebar />
-        <SidebarInset className="bg-neutral-50">
+        <SidebarInset className="min-w-0 bg-neutral-50">
           <header className="sticky top-0 z-20 flex h-14 shrink-0 items-center gap-2 border-b bg-background/85 px-4 backdrop-blur">
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-1 data-[orientation=vertical]:h-4" />

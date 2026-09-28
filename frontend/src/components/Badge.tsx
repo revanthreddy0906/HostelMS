@@ -53,7 +53,7 @@ export function Badge({ status }: { status: string | null | undefined }) {
     <span
       className={`inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${TONE_CLASSES[tone]}`}
     >
-      {status.replace(/_/g, ' ')}
+      {status.replace(/_/g, ' ').toLowerCase()}
     </span>
   );
 }

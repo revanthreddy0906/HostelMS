@@ -1,27 +1,36 @@
 import type { HTMLAttributes, ReactNode } from 'react';
+import { Card as UiCard, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 interface CardProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title'> {
   title?: ReactNode;
+  description?: ReactNode;
   actions?: ReactNode;
   children: ReactNode;
 }
 
-export function Card({ title, actions, children, className = '', ...rest }: CardProps) {
+export function Card({ title, description, actions, children, className, ...rest }: CardProps) {
   return (
-    <div
-      className={`rounded-xl border border-neutral-200 bg-white shadow-sm ${className}`}
-      {...rest}
-    >
+    <UiCard className={className} {...rest}>
       {(title || actions) && (
-        <div className="flex items-center justify-between border-b border-neutral-100 px-5 py-3.5">
-          {title && <h3 className="text-sm font-semibold text-neutral-900">{title}</h3>}
-          {actions}
-        </div>
+        <CardHeader>
+          {title && <CardTitle>{title}</CardTitle>}
+          {description && <p className="text-sm text-muted-foreground">{description}</p>}
+          {actions && <CardAction className="flex items-center gap-2">{actions}</CardAction>}
+        </CardHeader>
       )}
-      <div className="p-5">{children}</div>
-    </div>
+      <CardContent>{children}</CardContent>
+    </UiCard>
   );
 }
+
+const TONE_DOT: Record<string, string> = {
+  primary: 'bg-primary',
+  success: 'bg-emerald-500',
+  warning: 'bg-amber-500',
+  danger: 'bg-red-500',
+  info: 'bg-sky-500',
+};
 
 export function StatCard({
   label,
@@ -34,28 +43,16 @@ export function StatCard({
   hint?: string;
   tone?: 'primary' | 'success' | 'warning' | 'danger' | 'info';
 }) {
-  const dotClasses: Record<string, string> = {
-    primary: 'bg-primary-600',
-    success: 'bg-success-600',
-    warning: 'bg-warning-600',
-    danger: 'bg-danger-600',
-    info: 'bg-info-600',
-  };
-  const valueClasses: Record<string, string> = {
-    primary: 'text-neutral-900',
-    success: 'text-success-700',
-    warning: 'text-warning-700',
-    danger: 'text-danger-700',
-    info: 'text-info-700',
-  };
   return (
-    <div className="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm">
-      <div className="flex items-center gap-2 text-sm font-medium text-neutral-600">
-        <span className={`h-2 w-2 rounded-full ${dotClasses[tone]}`} aria-hidden="true" />
-        {label}
-      </div>
-      <div className={`mt-3 text-3xl font-semibold tracking-tight tabular-nums ${valueClasses[tone]}`}>{value}</div>
-      {hint && <div className="mt-1 text-xs text-neutral-500">{hint}</div>}
-    </div>
+    <UiCard className="gap-2">
+      <CardContent>
+        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+          <span className={cn('size-2 rounded-full', TONE_DOT[tone])} aria-hidden="true" />
+          {label}
+        </div>
+        <div className="mt-2 text-3xl font-semibold tracking-tight tabular-nums">{value}</div>
+        {hint && <div className="mt-1 text-xs text-muted-foreground">{hint}</div>}
+      </CardContent>
+    </UiCard>
   );
 }
