@@ -192,13 +192,14 @@ class ACReadingRepository(BaseRepository[ACReading]):
     def list_by_room(self, roomid: int):
         return list(
             self.session.execute(
-                select(ACReading).where(ACReading.roomid == roomid).order_by(ACReading.period.desc())
+                select(ACReading).where(ACReading.roomid == roomid).order_by(ACReading.readingid.desc())
             ).scalars()
         )
 
     def latest_for_room(self, roomid: int):
         return self.session.execute(
-            select(ACReading).where(ACReading.roomid == roomid).order_by(ACReading.period.desc()).limit(1)
+            # Newest by insertion: the 'baseline' row would sort after 'YYYY-MM' periods as text.
+            select(ACReading).where(ACReading.roomid == roomid).order_by(ACReading.readingid.desc()).limit(1)
         ).scalar_one_or_none()
 
     def list_all_ordered(self):

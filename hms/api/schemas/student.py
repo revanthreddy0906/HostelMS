@@ -16,6 +16,13 @@ class StudentCreate(BaseModel):
     emergencycontact: str | None = None
     bloodgroup: str | None = None
     medicalhistory: str | None = None
+    email: str | None = None
+    college: str | None = None
+    course: str | None = None
+    yearofstudy: str | None = None
+    joiningdate: date | None = None
+    foodpreference: str = "Veg"
+    photo: str | None = None
 
 
 class StudentUpdate(BaseModel):
@@ -29,6 +36,13 @@ class StudentUpdate(BaseModel):
     emergencycontact: str | None = None
     bloodgroup: str | None = None
     medicalhistory: str | None = None
+    email: str | None = None
+    college: str | None = None
+    course: str | None = None
+    yearofstudy: str | None = None
+    foodpreference: str | None = None
+    photo: str | None = None
+    joiningdate: date | None = None
 
 
 class StudentSelfUpdate(BaseModel):
@@ -37,6 +51,12 @@ class StudentSelfUpdate(BaseModel):
     emergencycontact: str | None = None
     bloodgroup: str | None = None
     medicalhistory: str | None = None
+    email: str | None = None
+    college: str | None = None
+    course: str | None = None
+    yearofstudy: str | None = None
+    foodpreference: str | None = None
+    photo: str | None = None
 
 
 class CriticalChangeRequest(BaseModel):
@@ -66,3 +86,11 @@ class StudentOut(BaseModel):
     emergencycontact: str | None = None
     bloodgroup: str | None = None
     medicalhistory: str | None = None
+    email: str | None = None
+    college: str | None = None
+    course: str | None = None
+    yearofstudy: str | None = None
+    joiningdate: date | None = None
+    foodpreference: str = "Veg"
+    photo: str | None = None
+    residentstatus: str = "NEW"

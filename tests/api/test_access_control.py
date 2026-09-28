@@ -58,6 +58,14 @@ STAFF_ONLY_READS = [
     "/api/reports/leave-log.pdf",
     "/api/reports/complaint-timeline.pdf",
     "/api/reports/fee-collection.pdf?start=2026-01-01&end=2026-12-31",
+    "/api/maintenance",
+    "/api/ac/rooms",
+    "/api/ac/readings",
+    "/api/parents/guests",
+    "/api/parents/rooms",
+    "/api/dashboard/admin",
+    "/api/fees/summary",
+    "/api/rooms/map",
 ]
 
 
@@ -143,6 +151,14 @@ ALLOWED_READS = [
     ("student", "/api/students/me"),
     ("student", "/api/rooms"),
     ("student", "/api/hostels"),
+    ("student", "/api/food-menu"),
+    ("student", "/api/announcements"),
+    ("student", "/api/maintenance/me"),
+    ("student", "/api/fees/me/payments"),
+    ("staff", "/api/maintenance"),
+    ("warden", "/api/rooms/map"),
+    ("warden", "/api/parents/guests"),
+    ("admin", "/api/dashboard/admin"),
     ("admin", "/api/leaves/pending"),
     ("admin", "/api/allocations"),
 ]

@@ -32,6 +32,7 @@ from hms.api.routers import (
     fees,
     hostels,
     leaves,
+    pg,
     reports,
     settings,
     staff,
@@ -122,3 +123,5 @@ app.include_router(leaves.router)
 app.include_router(staff.router)
 app.include_router(reports.router)
 app.include_router(settings.router)
+for _router in (pg.maintenance, pg.menu, pg.ac, pg.parents, pg.announcements, pg.dashboard):
+    app.include_router(_router)

@@ -96,6 +96,16 @@ class Student(Base):
 
     __table_args__ = (CheckConstraint("foodpreference in ('Veg','Non-Veg')", name="ck_student_food"),)
 
+    @property
+    def residentstatus(self) -> str:
+        """ACTIVE while an allocation is active, VACATED once they've left, NEW if never housed."""
+        from sqlalchemy.orm import object_session
+
+        statuses = {row[0] for row in object_session(self).query(Allocation.status).filter(Allocation.studentid == self.studentid)}
+        if "Active" in statuses:
+            return "ACTIVE"
+        return "VACATED" if statuses else "NEW"
+
 
 class Hostel(Base):
     __tablename__ = "hostel"

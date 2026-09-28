@@ -28,7 +28,13 @@ from hms.db import engine, session_scope
 from hms.models.base import Base
 from hms.models.models import Admin
 from hms.repositories.repos import AdminRepository, FeeRepository
+from hms.services.ac_service import ACService
 from hms.services.allocation_service import AllocationService
+from hms.services.announcement_service import AnnouncementService
+from hms.services.complaint_service import ComplaintService
+from hms.services.maintenance_service import MaintenanceService
+from hms.services.menu_service import MenuService
+from hms.services.parent_service import ParentService
 from hms.services.auth_service import AuthService
 from hms.services.fee_service import DEPOSIT_PERIOD, FeeService
 from hms.services.leave_service import LeaveService
@@ -39,6 +45,17 @@ from hms.services.staff_service import StaffService
 from hms.services.student_service import StudentService
 
 JOINED = date(2026, 8, 1)
+
+# Weekly menu from the PG overview document; fryums on Wednesday and Saturday lunch.
+MENU = [
+    ("Monday", "Idly + Sambar + Chutney", "Rice + Dal + Curry + Curd", None, "Chapathi + Aloo Curry", None, False),
+    ("Tuesday", "Dosa + Chutney", "Rice + Sambar + Vegetable Curry", None, "Rice + Dal + Paneer Curry", "Rice + Dal + Egg Curry + Boiled Egg", False),
+    ("Wednesday", "Upma + Chutney", "Rice + Dal + Mixed Vegetable Curry", None, "Bagara Rice + Paneer Curry", "Bagara Rice + Chicken Curry", True),
+    ("Thursday", "Poori + Aloo Curry", "Rice + Sambar + Beans Fry", None, "Veg Biryani + Raita", "Chicken Biryani + Raita", False),
+    ("Friday", "Idly + Sambar + Chutney", "Rice + Dal + Cabbage Curry", None, "Chapathi + Mixed Veg Curry", None, False),
+    ("Saturday", "Pongal + Chutney", "Rice + Rasam + Vegetable Curry", None, "Veg Fried Rice + Veg Manchurian", "Chicken Fried Rice + Chicken Manchurian", True),
+    ("Sunday", "Puri + Potato Curry", "Veg Biryani + Raita", "Chicken Biryani + Raita", "Rice + Sweets + Aloo Curry", None, False),
+]
 
 BOYS = [
     # roll, first, last, phone, guardian, dob, college, course, year, food
@@ -196,9 +213,62 @@ def main():
             deduction=500, reason="Broken study-table drawer", vacate_date=date(2026, 9, 20),
         )
 
+        def as_student(roll):
+            st = students[roll]
+            return CurrentUser(userid=st.userid, username=roll.lower(), role="Student", entity_id=st.studentid)
+
         # --- A pending leave request from Arjun (SRS leave workflow) ---
-        arjun = CurrentUser(userid=students["S1001"].userid, username="student1", role="Student", entity_id=students["S1001"].studentid)
-        LeaveService(session).apply_leave(arjun, date(2026, 10, 1), date(2026, 10, 5), "Family function")
+        LeaveService(session).apply_leave(as_student("S1001"), date(2026, 10, 1), date(2026, 10, 5), "Family function")
+
+        # --- Food menu ---
+        MenuService(session).save_week(
+            admin,
+            [dict(zip(("day", "breakfast", "lunch", "lunchnonveg", "dinner", "dinnernonveg", "fryums"), row)) for row in MENU],
+        )
+
+        # --- AC: Room 202 (4 sharing, 4 students) billed for September; Room 304 has asked for AC ---
+        ac = ACService(session)
+        room_202 = room_ids[(boys.hostelid, "202")]
+        ac.request_ac(admin, room_202)
+        ac.approve(admin, room_202, initialreading=1200)
+        ac.record_reading(admin, room_202, "2026-09", currentreading=1400)  # 200 units x ₹8 = ₹1,600 -> ₹400 each
+        ac.request_ac(as_student("S1001"), room_ids[(boys.hostelid, "304")])
+
+        # --- Maintenance requests (auto-assigned to the matching staff) ---
+        maintenance = MaintenanceService(session)
+        fan = maintenance.create(as_student("S1001"), "Fan", "Ceiling fan makes a grinding noise at high speed", "Medium")
+        maintenance.update_status(admin, fan.requestid, "In Progress")
+        maintenance.create(as_student("S1008"), "Water leakage", "Water leaking from the bathroom tap all night", "High")
+        maintenance.create(as_student("S1003"), "Lock", "Cupboard lock is jammed", "Low")
+
+        # --- Complaints and feedback ---
+        complaints = ComplaintService(session)
+        complaints.register_complaint(
+            as_student("S1002"), "Food / Mess", "Food was good but dal was slightly salty.",
+            meal="Lunch", mealdate=date(2026, 9, 26), rating=4,
+        )
+        wifi = complaints.register_complaint(as_student("S1005"), "Wi-Fi", "Wi-Fi drops every evening on floor 3")
+        complaints.update_status(admin, wifi.complaintid, "Reviewed")
+        complaints.register_complaint(as_student("S1009"), "Noise", "Loud music in room 203 after midnight", isanonymous=True)
+        complaints.register_complaint(as_student("S1004"), "Suggestions", "Could we have a study room open till 1 am?")
+
+        # --- Parent accommodation (free) ---
+        parents = ParentService(session)
+        parent_rooms = {r.roomnumber: r.roomid for r in rooms.list_rooms(boys.hostelid) if r.purpose == "Parent"}
+        parents.book(
+            admin, guestname="Ramesh Reddy", relation="Father", studentid=students["S1005"].studentid, phone="9000000015",
+            idproof="Aadhaar XXXX-4821", roomid=parent_rooms["P-04"], arrivaldate=date(2026, 10, 5), departuredate=date(2026, 10, 7),
+        )
+        staying = parents.book(
+            admin, guestname="Lakshmi Rao", relation="Mother", studentid=students["S1006"].studentid, phone="9000000016",
+            idproof="Driving licence TS09 2019", roomid=parent_rooms["P-01"], arrivaldate=date(2026, 9, 27), departuredate=date(2026, 9, 29),
+        )
+        parents.set_status(admin, staying.guestid, "Staying")
+
+        # --- Announcements ---
+        notices = AnnouncementService(session)
+        notices.create(admin, "October rent", "October rent is due by 3 October. A late fine of ₹50 per day applies from the 4th.", pinned=True)
+        notices.create(admin, "Water tank cleaning", "Water supply will be off on Sunday from 10 am to 1 pm for tank cleaning.")
 
     print("Database reset and seeded.")
     print(f"Admin:    {DEFAULT_ADMIN_USERNAME} / {DEFAULT_ADMIN_PASSWORD}")
