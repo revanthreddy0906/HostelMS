@@ -2,13 +2,15 @@ import { Suspense } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { LoadingState } from '@/components/Feedback';
 import { AppSidebar, pageTitleFor } from '@/components/AppSidebar';
+import { useAuth } from '@/context/AuthContext';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { Separator } from '@/components/ui/separator';
 import { TooltipProvider } from '@/components/ui/tooltip';
 
 export function AppLayout() {
   const { pathname } = useLocation();
-  const title = pageTitleFor(pathname);
+  const { user } = useAuth();
+  const title = pageTitleFor(pathname, user?.role);
 
   return (
     <TooltipProvider delayDuration={200}>

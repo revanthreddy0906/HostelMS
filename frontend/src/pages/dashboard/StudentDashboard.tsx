@@ -9,6 +9,7 @@ import { Badge } from '@/components/Badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { DashboardHeader, EmptyNote, KpiCard, ListSkeleton, Stat } from './shared';
+import { serverTime } from '@/lib/time';
 
 const OPEN_STATUSES = new Set(['OPEN', 'IN PROGRESS']);
 const inr = (n: number) => n.toLocaleString('en-IN', { maximumFractionDigits: 2 });
@@ -219,7 +220,7 @@ export function StudentDashboard() {
                     <Badge status={c.status} />
                   </div>
                   <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{c.description}</p>
-                  <p className="mt-2 text-xs text-muted-foreground">{new Date(c.createdat).toLocaleDateString('en-IN')}</p>
+                  <p className="mt-2 text-xs text-muted-foreground">{serverTime(c.createdat).toLocaleDateString('en-IN')}</p>
                 </li>
               ))}
             </ul>

@@ -209,7 +209,7 @@ export function AllocationsPage() {
         }
       />
 
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1fr_320px]">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
         <Table
           columns={columns}
           rows={allocations}

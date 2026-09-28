@@ -1,13 +1,6 @@
-import { Link } from 'react-router-dom';
+import { Compass } from 'lucide-react';
+import { StatusPage } from '../components/StatusPage';
 
 export function NotFoundPage() {
-  return (
-    <div className="flex h-screen flex-col items-center justify-center gap-2 text-center">
-      <div className="text-5xl font-bold text-neutral-300">404</div>
-      <p className="text-neutral-600">This page doesn't exist.</p>
-      <Link to="/dashboard" className="mt-2 text-sm font-medium text-primary-600 hover:underline">
-        Back to dashboard
-      </Link>
-    </div>
-  );
+  return <StatusPage code="404" icon={Compass} title="Page not found" message="The page you're looking for doesn't exist or has moved." />;
 }

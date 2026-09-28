@@ -1,13 +1,6 @@
-import { Link } from 'react-router-dom';
+import { ShieldOff } from 'lucide-react';
+import { StatusPage } from '../components/StatusPage';
 
 export function ForbiddenPage() {
-  return (
-    <div className="flex h-screen flex-col items-center justify-center gap-2 text-center">
-      <div className="text-5xl font-bold text-neutral-300">403</div>
-      <p className="text-neutral-600">You don't have permission to view this page.</p>
-      <Link to="/dashboard" className="mt-2 text-sm font-medium text-primary-600 hover:underline">
-        Back to dashboard
-      </Link>
-    </div>
-  );
+  return <StatusPage code="403" icon={ShieldOff} title="You don't have access" message="This page isn't part of your role's workspace. Ask an administrator if you need access." />;
 }

@@ -10,6 +10,7 @@ import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle }
 import { Progress } from '@/components/ui/progress';
 import { BorderBeam } from '@/components/ui/border-beam';
 import { DashboardHeader, EmptyNote, KpiCard, ListSkeleton, Stat, useReduceMotion } from './shared';
+import { serverTime } from '@/lib/time';
 
 const OPEN_STATUSES = new Set(['OPEN', 'IN PROGRESS']);
 
@@ -215,7 +216,7 @@ export function WardenDashboard() {
                   </div>
                   <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{c.description}</p>
                   <p className="mt-2 text-xs text-muted-foreground">
-                    {nameOf(c.studentid)} · {new Date(c.createdat).toLocaleDateString('en-IN')}
+                    {nameOf(c.studentid)} · {serverTime(c.createdat).toLocaleDateString('en-IN')}
                   </p>
                 </li>
               ))}

@@ -249,7 +249,13 @@ export function HostelsPage() {
                       <div className="min-w-0">
                         <dt className="text-xs text-muted-foreground">Warden</dt>
                         <dd className="truncate font-medium">
-                          {warden ?? (h.wardenstaffid ? `Staff #${h.wardenstaffid}` : <span className="text-muted-foreground">Unassigned</span>)}
+                          {!h.wardenstaffid ? (
+                            <span className="text-muted-foreground">Unassigned</span>
+                          ) : user?.role === 'Warden' && h.wardenstaffid === user.entity_id ? (
+                            'You'
+                          ) : (
+                            (isAdmin && warden) || 'Assigned'
+                          )}
                         </dd>
                       </div>
                     </dl>

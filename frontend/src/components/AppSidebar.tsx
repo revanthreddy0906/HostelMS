@@ -45,6 +45,8 @@ interface NavItem {
   label: string;
   roles: Role[];
   icon: LucideIcon;
+  /** Role-specific label, e.g. a student's own profile instead of the student list. */
+  labelFor?: Partial<Record<Role, string>>;
 }
 
 interface NavSection {
@@ -62,7 +64,7 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     label: 'Residents',
     items: [
-      { to: '/students', label: 'Students', roles: ['Admin', 'Student'], icon: Users },
+      { to: '/students', label: 'Students', roles: ['Admin', 'Student'], icon: Users, labelFor: { Student: 'My profile' } },
       { to: '/allocations', label: 'Allocations', roles: ['Admin', 'Warden'], icon: BedDouble },
       { to: '/hostels', label: 'Hostels & Rooms', roles: ['Admin', 'Warden'], icon: Building2 },
     ],
@@ -89,10 +91,12 @@ export const NAV_SECTIONS: NavSection[] = [
   },
 ];
 
-export function pageTitleFor(pathname: string): string {
+const labelOf = (item: NavItem, role?: Role) => (role && item.labelFor?.[role]) || item.label;
+
+export function pageTitleFor(pathname: string, role?: Role): string {
   for (const section of NAV_SECTIONS) {
     const match = section.items.find((item) => pathname.startsWith(item.to));
-    if (match) return match.label;
+    if (match) return labelOf(match, role);
   }
   return '';
 }
@@ -135,10 +139,10 @@ export function AppSidebar() {
               <SidebarMenu>
                 {section.items.map((item) => (
                   <SidebarMenuItem key={item.to}>
-                    <SidebarMenuButton asChild isActive={pathname.startsWith(item.to)} tooltip={item.label}>
+                    <SidebarMenuButton asChild isActive={pathname.startsWith(item.to)} tooltip={labelOf(item, user.role)}>
                       <NavLink to={item.to}>
                         <item.icon />
-                        <span>{item.label}</span>
+                        <span>{labelOf(item, user.role)}</span>
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

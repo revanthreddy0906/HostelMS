@@ -83,7 +83,7 @@ export const feesApi = {
   setStructure: (roomtype: string, amount: number, semester: string) =>
     api.post<void>('/fees/structure', { roomtype, amount, semester }),
   generate: (semester: string, duedate: string) =>
-    api.post<void>('/fees/generate', { semester, duedate }),
+    api.post<Fee[]>('/fees/generate', { semester, duedate }),
   forStudent: (studentid: number) => api.get<Fee[]>(`/fees/student/${studentid}`),
   me: () => api.get<Fee[]>('/fees/me'),
   pay: (feeid: number, amount: number) => api.post<Fee>(`/fees/${feeid}/pay`, { amount }),
