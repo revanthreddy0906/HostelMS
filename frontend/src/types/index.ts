@@ -22,6 +22,14 @@ export interface Student {
   emergencycontact?: string | null;
   bloodgroup?: string | null;
   medicalhistory?: string | null;
+  email?: string | null;
+  college?: string | null;
+  course?: string | null;
+  yearofstudy?: string | null;
+  foodpreference?: 'Veg' | 'Non-Veg' | null;
+  photo?: string | null;
+  joiningdate?: string | null;
+  residentstatus: 'ACTIVE' | 'VACATED' | 'NEW';
 }
 
 export interface StudentCreate {
@@ -37,6 +45,13 @@ export interface StudentCreate {
   emergencycontact?: string | null;
   bloodgroup?: string | null;
   medicalhistory?: string | null;
+  email?: string | null;
+  college?: string | null;
+  course?: string | null;
+  yearofstudy?: string | null;
+  foodpreference?: 'Veg' | 'Non-Veg' | null;
+  photo?: string | null;
+  joiningdate?: string | null;
 }
 
 export type StudentUpdate = Partial<StudentCreate> & { rollnumber?: string | null };
@@ -47,6 +62,12 @@ export interface StudentSelfUpdate {
   emergencycontact?: string | null;
   bloodgroup?: string | null;
   medicalhistory?: string | null;
+  email?: string | null;
+  college?: string | null;
+  course?: string | null;
+  yearofstudy?: string | null;
+  foodpreference?: 'Veg' | 'Non-Veg' | null;
+  photo?: string | null;
 }
 
 export interface CriticalChangeRequest {
@@ -219,12 +240,134 @@ export type SettingsValues = Record<string, string>;
 
 export interface Complaint {
   complaintid: number;
-  studentid: number;
+  /** null for anonymous complaints seen by staff */
+  studentid: number | null;
   category: string;
   description: string;
   status: string;
   createdat: string;
+  meal?: 'Breakfast' | 'Lunch' | 'Dinner' | null;
+  mealdate?: string | null;
+  rating?: number | null;
+  isanonymous: boolean;
+}
+
+export interface ComplaintCreate {
+  category: string;
+  description: string;
+  meal?: string | null;
+  mealdate?: string | null;
+  rating?: number | null;
+  isanonymous?: boolean;
+}
+
+export interface MaintenanceRequest {
+  requestid: number;
+  studentid: number;
+  roomid?: number | null;
+  category: string;
+  description: string;
+  priority: 'Low' | 'Medium' | 'High' | 'Emergency';
+  status: 'Pending' | 'Assigned' | 'In Progress' | 'Resolved' | 'Rejected';
   assignedstaffid?: number | null;
+  photo?: string | null;
+  resolutionnote?: string | null;
+  createdat: string;
+  updatedat: string;
+}
+
+export interface MenuDay {
+  day: string;
+  breakfast: string;
+  lunch: string;
+  lunchnonveg?: string | null;
+  dinner: string;
+  dinnernonveg?: string | null;
+  fryums: boolean;
+}
+
+export interface ACRoom {
+  roomid: number;
+  roomnumber: string;
+  hostelname: string;
+  floor: number;
+  acstatus: 'Requested' | 'Active';
+  occupants: number;
+  lastreading?: number | null;
+  lastperiod?: string | null;
+}
+
+export interface ACReading {
+  readingid: number;
+  roomid: number;
+  period: string;
+  previousreading: number;
+  currentreading: number;
+  rateperunit: number;
+  totalamount: number;
+  occupants: number;
+  recordedat: string;
+}
+
+export interface ParentRoom {
+  roomid: number;
+  roomnumber: string;
+  hostelname: string;
+  floor: number;
+  capacity: number;
+  staying: number;
+}
+
+export interface ParentGuest {
+  guestid: number;
+  guestname: string;
+  relation: string;
+  studentid: number;
+  phone: string;
+  idproof: string;
+  roomid: number;
+  arrivaldate: string;
+  departuredate: string;
+  status: 'Booked' | 'Staying' | 'Departed' | 'Cancelled';
+}
+
+export type ParentGuestCreate = Omit<ParentGuest, 'guestid' | 'status'>;
+
+export interface Announcement {
+  announcementid: number;
+  title: string;
+  body: string;
+  pinned: boolean;
+  createdat: string;
+}
+
+export interface Series {
+  label: string;
+  value: number;
+}
+
+export interface AdminSummary {
+  counts: {
+    active_students: number;
+    vacated_students: number;
+    awaiting_room: number;
+    total_rooms: number;
+    occupied_rooms: number;
+    available_beds: number;
+    total_beds: number;
+    revenue_this_month: number;
+    pending_fees: number;
+    open_maintenance: number;
+    open_complaints: number;
+    ac_bills_pending: number;
+    parent_rooms_occupied: number;
+    parent_rooms: number;
+  };
+  occupancy_by_floor: { label: string; occupied: number; free: number }[];
+  students_by_sharing: Series[];
+  revenue_by_month: { month: string; amount: number }[];
+  maintenance_by_status: Series[];
+  complaints_by_category: Series[];
 }
 
 export interface Visitor {

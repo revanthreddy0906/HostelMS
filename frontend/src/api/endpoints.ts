@@ -1,5 +1,15 @@
 import { api } from './client';
 import type {
+  ACReading,
+  ACRoom,
+  AdminSummary,
+  Announcement,
+  ComplaintCreate,
+  MaintenanceRequest,
+  MenuDay,
+  ParentGuest,
+  ParentGuestCreate,
+  ParentRoom,
   AbsenteeAlert,
   Allocation,
   Bed,
@@ -107,8 +117,7 @@ export const feesApi = {
 export const complaintsApi = {
   list: () => api.get<Complaint[]>('/complaints'),
   me: () => api.get<Complaint[]>('/complaints/me'),
-  create: (category: string, description: string) =>
-    api.post<Complaint>('/complaints', { category, description }),
+  create: (payload: ComplaintCreate) => api.post<Complaint>('/complaints', payload),
   setStatus: (complaintid: number, new_status: string) =>
     api.post<Complaint>(`/complaints/${complaintid}/status`, { new_status }),
 };
@@ -156,4 +165,49 @@ export const staffApi = {
 export const settingsApi = {
   get: () => api.get<{ values: SettingsValues }>('/settings'),
   update: (values: Record<string, number>) => api.put<{ values: SettingsValues }>('/settings', { values }),
+};
+
+// ---- PG features ----
+export const maintenanceApi = {
+  options: () => api.get<{ categories: string[]; priorities: string[] }>('/maintenance/options'),
+  list: () => api.get<MaintenanceRequest[]>('/maintenance'),
+  me: () => api.get<MaintenanceRequest[]>('/maintenance/me'),
+  create: (payload: { category: string; description: string; priority: string; photo?: string | null }) =>
+    api.post<MaintenanceRequest>('/maintenance', payload),
+  assign: (requestid: number, staffid: number) => api.post<MaintenanceRequest>(`/maintenance/${requestid}/assign`, { staffid }),
+  setStatus: (requestid: number, new_status: string, note?: string) =>
+    api.post<MaintenanceRequest>(`/maintenance/${requestid}/status`, { new_status, note }),
+};
+
+export const menuApi = {
+  week: () => api.get<MenuDay[]>('/food-menu'),
+  save: (days: MenuDay[]) => api.put<MenuDay[]>('/food-menu', { days }),
+};
+
+export const acApi = {
+  rooms: () => api.get<ACRoom[]>('/ac/rooms'),
+  readings: () => api.get<ACReading[]>('/ac/readings'),
+  request: (roomid: number) => api.post<Room>(`/ac/rooms/${roomid}/request`),
+  approve: (roomid: number, initialreading: number) => api.post<Room>(`/ac/rooms/${roomid}/approve`, { initialreading }),
+  reject: (roomid: number) => api.post<Room>(`/ac/rooms/${roomid}/reject`),
+  record: (roomid: number, period: string, currentreading: number) =>
+    api.post<ACReading>('/ac/readings', { roomid, period, currentreading }),
+};
+
+export const parentsApi = {
+  rooms: () => api.get<ParentRoom[]>('/parents/rooms'),
+  guests: () => api.get<ParentGuest[]>('/parents/guests'),
+  forStudent: (studentid: number) => api.get<ParentGuest[]>(`/parents/guests/student/${studentid}`),
+  book: (payload: ParentGuestCreate) => api.post<ParentGuest>('/parents/guests', payload),
+  setStatus: (guestid: number, status: string) => api.post<ParentGuest>(`/parents/guests/${guestid}/status`, { status }),
+};
+
+export const announcementsApi = {
+  list: () => api.get<Announcement[]>('/announcements'),
+  create: (title: string, body: string, pinned: boolean) => api.post<Announcement>('/announcements', { title, body, pinned }),
+  remove: (id: number) => api.del<void>(`/announcements/${id}`),
+};
+
+export const dashboardApi = {
+  admin: () => api.get<AdminSummary>('/dashboard/admin'),
 };

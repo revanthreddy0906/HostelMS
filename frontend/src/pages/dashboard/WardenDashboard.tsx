@@ -12,7 +12,7 @@ import { BorderBeam } from '@/components/ui/border-beam';
 import { DashboardHeader, EmptyNote, KpiCard, ListSkeleton, Stat, useReduceMotion } from './shared';
 import { serverTime } from '@/lib/time';
 
-const OPEN_STATUSES = new Set(['OPEN', 'IN PROGRESS']);
+const OPEN_STATUSES = new Set(['PENDING', 'REVIEWED', 'IN PROGRESS']);
 
 function todayISO() {
   const d = new Date();
@@ -216,7 +216,7 @@ export function WardenDashboard() {
                   </div>
                   <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{c.description}</p>
                   <p className="mt-2 text-xs text-muted-foreground">
-                    {nameOf(c.studentid)} · {serverTime(c.createdat).toLocaleDateString('en-IN')}
+                    {c.studentid == null ? 'Anonymous' : nameOf(c.studentid)} · {serverTime(c.createdat).toLocaleDateString('en-IN')}
                   </p>
                 </li>
               ))}

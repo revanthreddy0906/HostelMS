@@ -35,6 +35,21 @@ const STATUS_TONE: Record<string, 'success' | 'warning' | 'danger' | 'info' | 'n
   SHUTDOWN: 'danger',
   OVERSTAYING: 'danger',
   'ON PREMISES': 'info',
+  // complaints / maintenance (PG overview document)
+  REVIEWED: 'info',
+  ASSIGNED: 'info',
+  // AC facility
+  REQUESTED: 'warning',
+  // parent stays
+  BOOKED: 'info',
+  STAYING: 'success',
+  DEPARTED: 'neutral',
+  CANCELLED: 'neutral',
+  // maintenance priority
+  LOW: 'neutral',
+  MEDIUM: 'info',
+  HIGH: 'warning',
+  EMERGENCY: 'danger',
 };
 
 const TONE_CLASSES: Record<string, string> = {

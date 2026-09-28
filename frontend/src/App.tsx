@@ -18,6 +18,12 @@ const VisitorsPage = lazy(() => import('./pages/VisitorsPage').then((m) => ({ de
 const AttendancePage = lazy(() => import('./pages/AttendancePage').then((m) => ({ default: m.AttendancePage })));
 const LeavesPage = lazy(() => import('./pages/LeavesPage').then((m) => ({ default: m.LeavesPage })));
 const ReportsPage = lazy(() => import('./pages/ReportsPage').then((m) => ({ default: m.ReportsPage })));
+const MaintenancePage = lazy(() => import('./pages/MaintenancePage').then((m) => ({ default: m.MaintenancePage })));
+const FoodMenuPage = lazy(() => import('./pages/FoodMenuPage').then((m) => ({ default: m.FoodMenuPage })));
+const ACBillingPage = lazy(() => import('./pages/ACBillingPage').then((m) => ({ default: m.ACBillingPage })));
+const ParentAccommodationPage = lazy(() => import('./pages/ParentAccommodationPage').then((m) => ({ default: m.ParentAccommodationPage })));
+const NoticesPage = lazy(() => import('./pages/NoticesPage').then((m) => ({ default: m.NoticesPage })));
+const SettingsPage = lazy(() => import('./pages/SettingsPage').then((m) => ({ default: m.SettingsPage })));
 const StaffPage = lazy(() => import('./pages/StaffPage').then((m) => ({ default: m.StaffPage })));
 const ForbiddenPage = lazy(() => import('./pages/ForbiddenPage').then((m) => ({ default: m.ForbiddenPage })));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })));
@@ -97,6 +103,33 @@ export default function App() {
                 element={
                   <ProtectedRoute roles={['Admin', 'Warden']}>
                     <ReportsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="/food-menu" element={<FoodMenuPage />} />
+              <Route path="/maintenance" element={<MaintenancePage />} />
+              <Route path="/notices" element={<NoticesPage />} />
+              <Route
+                path="/ac-billing"
+                element={
+                  <ProtectedRoute roles={['Admin', 'Warden']}>
+                    <ACBillingPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/parents"
+                element={
+                  <ProtectedRoute roles={['Admin', 'Warden']}>
+                    <ParentAccommodationPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/settings"
+                element={
+                  <ProtectedRoute roles={['Admin']}>
+                    <SettingsPage />
                   </ProtectedRoute>
                 }
               />

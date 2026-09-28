@@ -6,6 +6,12 @@ import {
   CalendarCheck,
   ChevronsUpDown,
   DoorOpen,
+  HeartHandshake,
+  Megaphone,
+  Settings,
+  Snowflake,
+  UtensilsCrossed,
+  Wrench,
   IdCard,
   LayoutDashboard,
   LogOut,
@@ -59,7 +65,10 @@ const ALL: Role[] = ['Admin', 'Warden', 'Staff', 'Student'];
 export const NAV_SECTIONS: NavSection[] = [
   {
     label: 'Overview',
-    items: [{ to: '/dashboard', label: 'Dashboard', roles: ALL, icon: LayoutDashboard }],
+    items: [
+      { to: '/dashboard', label: 'Dashboard', roles: ALL, icon: LayoutDashboard },
+      { to: '/notices', label: 'Notice board', roles: ALL, icon: Megaphone },
+    ],
   },
   {
     label: 'Residents',
@@ -67,6 +76,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { to: '/students', label: 'Students', roles: ['Admin', 'Student'], icon: Users, labelFor: { Student: 'My profile' } },
       { to: '/allocations', label: 'Allocations', roles: ['Admin', 'Warden'], icon: BedDouble },
       { to: '/hostels', label: 'Hostels & Rooms', roles: ['Admin', 'Warden'], icon: Building2 },
+      { to: '/parents', label: 'Parent stays', roles: ['Admin', 'Warden'], icon: HeartHandshake },
     ],
   },
   {
@@ -75,19 +85,25 @@ export const NAV_SECTIONS: NavSection[] = [
       { to: '/attendance', label: 'Attendance', roles: ['Admin', 'Warden', 'Staff'], icon: CalendarCheck },
       { to: '/leaves', label: 'Leaves & Gate Pass', roles: ALL, icon: DoorOpen },
       { to: '/visitors', label: 'Visitors', roles: ['Admin', 'Warden', 'Staff'], icon: IdCard },
-      { to: '/complaints', label: 'Complaints', roles: ALL, icon: MessageSquareWarning },
+      { to: '/food-menu', label: 'Food menu', roles: ALL, icon: UtensilsCrossed },
+      { to: '/maintenance', label: 'Maintenance', roles: ALL, icon: Wrench },
+      { to: '/complaints', label: 'Complaints & feedback', roles: ALL, icon: MessageSquareWarning },
     ],
   },
   {
     label: 'Finance & reports',
     items: [
       { to: '/fees', label: 'Fees', roles: ['Admin', 'Student'], icon: Wallet },
+      { to: '/ac-billing', label: 'AC billing', roles: ['Admin', 'Warden'], icon: Snowflake },
       { to: '/reports', label: 'Reports', roles: ['Admin', 'Warden'], icon: BarChart3 },
     ],
   },
   {
     label: 'Administration',
-    items: [{ to: '/staff', label: 'Staff', roles: ['Admin'], icon: UserCog }],
+    items: [
+      { to: '/staff', label: 'Staff', roles: ['Admin'], icon: UserCog },
+      { to: '/settings', label: 'Settings', roles: ['Admin'], icon: Settings },
+    ],
   },
 ];
 

@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, ClipboardCheck, IdCard, QrCode, TimerOff, Wrench } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
-import { attendanceApi, complaintsApi, studentsApi, visitorsApi } from '@/api/endpoints';
-import type { Attendance, Complaint, SecurityDashboardRow, Student } from '@/types';
+import { attendanceApi, maintenanceApi, studentsApi, visitorsApi } from '@/api/endpoints';
+import type { Attendance, MaintenanceRequest, SecurityDashboardRow, Student } from '@/types';
 import { Badge } from '@/components/Badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,7 +12,7 @@ import { BorderBeam } from '@/components/ui/border-beam';
 import { cn } from '@/lib/utils';
 import { DashboardHeader, EmptyNote, KpiCard, ListSkeleton, Stat, useReduceMotion } from './shared';
 
-const OPEN_STATUSES = new Set(['OPEN', 'IN PROGRESS']);
+const OPEN_STATUSES = new Set(['Assigned', 'In Progress']);
 
 function todayISO() {
   const d = new Date();
@@ -30,7 +30,7 @@ export function StaffDashboard() {
   const { showError } = useToast();
   const reduceMotion = useReduceMotion();
   const [visitors, setVisitors] = useState<SecurityDashboardRow[]>([]);
-  const [complaints, setComplaints] = useState<Complaint[]>([]);
+  const [jobs, setJobs] = useState<MaintenanceRequest[]>([]);
   const [rollCall, setRollCall] = useState<Attendance[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,12 +40,12 @@ export function StaffDashboard() {
       try {
         const [v, c, r, s] = await Promise.all([
           visitorsApi.dashboard(),
-          complaintsApi.list(),
+          maintenanceApi.list(),
           attendanceApi.forDate(todayISO()),
           studentsApi.list(),
         ]);
         setVisitors(v);
-        setComplaints(c);
+        setJobs(c);
         setRollCall(r);
         setStudents(s);
       } catch (err) {
@@ -64,7 +64,7 @@ export function StaffDashboard() {
 
   const overstaying = visitors.filter((v) => v.overstaying);
   const sortedVisitors = [...visitors].sort((a, b) => Number(b.overstaying) - Number(a.overstaying) || b.hours_in - a.hours_in);
-  const myTickets = complaints.filter((c) => c.assignedstaffid === user?.entity_id && OPEN_STATUSES.has(c.status.toUpperCase()));
+  const myTickets = jobs.filter((j) => j.assignedstaffid === user?.entity_id && OPEN_STATUSES.has(j.status));
   const marked = new Set(rollCall.map((r) => r.studentid)).size;
 
   return (
@@ -78,7 +78,7 @@ export function StaffDashboard() {
         <KpiCard title="Overstaying" icon={TimerOff} to="/visitors" tone="danger" loading={loading} footer="Past maximum visiting hours">
           <Stat value={overstaying.length} />
         </KpiCard>
-        <KpiCard title="My open tickets" icon={Wrench} to="/complaints" tone="warning" loading={loading} footer="Assigned to you">
+        <KpiCard title="My repair jobs" icon={Wrench} to="/maintenance" tone="warning" loading={loading} footer="Assigned to you">
           <Stat value={myTickets.length} />
         </KpiCard>
         <KpiCard title="Roll call today" icon={ClipboardCheck} to="/attendance" loading={loading} footer={`of ${students.length} students marked`}>
@@ -142,7 +142,7 @@ export function StaffDashboard() {
           <Card>
             <CardHeader>
               <CardTitle>My tickets</CardTitle>
-              <CardDescription>Open complaints assigned to you</CardDescription>
+              <CardDescription>Open repair jobs assigned to you</CardDescription>
             </CardHeader>
             <CardContent>
               {loading ? (
@@ -152,7 +152,7 @@ export function StaffDashboard() {
               ) : (
                 <ul className="space-y-2">
                   {myTickets.slice(0, 5).map((c) => (
-                    <li key={c.complaintid} className="rounded-md border px-3 py-2">
+                    <li key={c.requestid} className="rounded-md border px-3 py-2">
                       <div className="flex items-center justify-between gap-2">
                         <span className="text-sm font-medium">{c.category}</span>
                         <Badge status={c.status} />
