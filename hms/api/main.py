@@ -33,6 +33,7 @@ from hms.api.routers import (
     hostels,
     leaves,
     reports,
+    settings,
     staff,
     students,
     visitors,
@@ -120,3 +121,4 @@ app.include_router(attendance.router)
 app.include_router(leaves.router)
 app.include_router(staff.router)
 app.include_router(reports.router)
+app.include_router(settings.router)

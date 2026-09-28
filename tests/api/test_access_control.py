@@ -115,10 +115,7 @@ def test_fee_receipt_only_for_owner_and_fee_staff(client, actors, seeded):
     assert client.post(
         "/api/allocations/manual", json={"studentid": actors["own_id"], "roomid": seeded["roomid"]}, headers=admin
     ).status_code == 200
-    assert client.post(
-        "/api/fees/structure", json={"roomtype": "Non-AC", "amount": 25000, "semester": "Sem1"}, headers=admin
-    ).status_code == 200
-    fees = client.post("/api/fees/generate", json={"semester": "Sem1", "duedate": "2026-12-31"}, headers=admin)
+    fees = client.post("/api/fees/generate-rent", json={"period": "2026-12"}, headers=admin)
     assert fees.status_code == 200, fees.text
     receipt = f"/api/reports/receipt/{fees.json()[0]['feeid']}.pdf"
 
@@ -167,10 +164,7 @@ def test_student_can_pay_only_own_fee_and_not_overpay(client, actors, seeded):
     assert client.post(
         "/api/allocations/manual", json={"studentid": actors["own_id"], "roomid": seeded["roomid"]}, headers=admin
     ).status_code == 200
-    assert client.post(
-        "/api/fees/structure", json={"roomtype": "Non-AC", "amount": 25000, "semester": "Sem1"}, headers=admin
-    ).status_code == 200
-    feeid = client.post("/api/fees/generate", json={"semester": "Sem1", "duedate": "2026-12-31"}, headers=admin).json()[0]["feeid"]
+    feeid = client.post("/api/fees/generate-rent", json={"period": "2026-12"}, headers=admin).json()[0]["feeid"]
 
     assert client.post(f"/api/fees/{feeid}/pay", json={"amount": 100}, headers=actors["student2"]).status_code == 403
     assert client.post(f"/api/fees/{feeid}/pay", json={"amount": 30000}, headers=actors["student"]).status_code in (400, 422)

@@ -2,18 +2,25 @@ import { api } from './client';
 import type {
   AbsenteeAlert,
   Allocation,
+  Bed,
   Attendance,
   Complaint,
   CriticalChangeRequest,
   Fee,
+  FinanceSummary,
   Hostel,
   HostelCreate,
   Leave,
   LoginResponse,
+  MapHostel,
   OccupancyRow,
+  Payment,
   Room,
   RoomCreate,
   SecurityDashboardRow,
+  Settlement,
+  SettlementPreview,
+  SettingsValues,
   Staff,
   StaffCreate,
   Student,
@@ -62,6 +69,8 @@ export const roomsApi = {
   list: (hostelid?: number) => api.get<Room[]>('/rooms', { hostelid }),
   create: (payload: RoomCreate) => api.post<Room>('/rooms', payload),
   occupancy: () => api.get<OccupancyRow[]>('/rooms/occupancy'),
+  map: () => api.get<MapHostel[]>('/rooms/map'),
+  freeBeds: (roomid: number) => api.get<Bed[]>(`/rooms/${roomid}/free-beds`),
 };
 
 // ---- Allocations ----
@@ -70,24 +79,28 @@ export const allocationsApi = {
   forStudent: (studentid: number) => api.get<Allocation | null>(`/allocations/student/${studentid}`),
   auto: (studentid: number, alloc_date?: string) =>
     api.post<Allocation>('/allocations/auto', { studentid, alloc_date }),
-  manual: (studentid: number, roomid: number, alloc_date?: string) =>
-    api.post<Allocation>('/allocations/manual', { studentid, roomid, alloc_date }),
+  manual: (studentid: number, roomid: number, bedid?: number | null, alloc_date?: string) =>
+    api.post<Allocation>('/allocations/manual', { studentid, roomid, bedid, alloc_date }),
   vacate: (allocationid: number, vacate_date?: string) =>
     api.post<Allocation>(`/allocations/${allocationid}/vacate`, { vacate_date }),
-  changeRoom: (studentid: number, new_roomid: number, change_date?: string) =>
-    api.post<Allocation>('/allocations/change-room', { studentid, new_roomid, change_date }),
+  changeRoom: (studentid: number, new_roomid: number, bedid?: number | null, change_date?: string) =>
+    api.post<Allocation>('/allocations/change-room', { studentid, new_roomid, bedid, change_date }),
+  settlementPreview: (allocationid: number) => api.get<SettlementPreview>(`/allocations/${allocationid}/settlement-preview`),
+  settle: (allocationid: number, deduction: number, reason?: string) =>
+    api.post<Settlement>(`/allocations/${allocationid}/settle`, { deduction, reason }),
+  settlementsForStudent: (studentid: number) => api.get<Settlement[]>(`/allocations/settlements/student/${studentid}`),
 };
 
 // ---- Fees ----
 export const feesApi = {
-  setStructure: (roomtype: string, amount: number, semester: string) =>
-    api.post<void>('/fees/structure', { roomtype, amount, semester }),
-  generate: (semester: string, duedate: string) =>
-    api.post<Fee[]>('/fees/generate', { semester, duedate }),
+  generateRent: (period: string) => api.post<Fee[]>('/fees/generate-rent', { period }),
+  summary: () => api.get<FinanceSummary>('/fees/summary'),
   forStudent: (studentid: number) => api.get<Fee[]>(`/fees/student/${studentid}`),
+  paymentsForStudent: (studentid: number) => api.get<Payment[]>(`/fees/student/${studentid}/payments`),
   me: () => api.get<Fee[]>('/fees/me'),
+  myPayments: () => api.get<Payment[]>('/fees/me/payments'),
   pay: (feeid: number, amount: number) => api.post<Fee>(`/fees/${feeid}/pay`, { amount }),
-  markOverdue: () => api.post<void>('/fees/mark-overdue'),
+  markOverdue: () => api.post<{ marked_overdue: number }>('/fees/mark-overdue'),
 };
 
 // ---- Complaints ----
@@ -137,4 +150,10 @@ export const staffApi = {
   list: () => api.get<Staff[]>('/staff'),
   get: (id: number) => api.get<Staff>(`/staff/${id}`),
   create: (payload: StaffCreate) => api.post<Staff>('/staff', payload),
+};
+
+// ---- Settings ----
+export const settingsApi = {
+  get: () => api.get<{ values: SettingsValues }>('/settings'),
+  update: (values: Record<string, number>) => api.put<{ values: SettingsValues }>('/settings', { values }),
 };

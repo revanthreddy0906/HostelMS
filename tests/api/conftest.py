@@ -83,7 +83,7 @@ def seeded(db_engine):
         room_service = RoomService(session)
         hostel = hostel_service.create_hostel(admin_user, hostelname="Test Block", gendertype="Male", totalrooms=1)
         session.flush()
-        room = room_service.create_room(admin_user, hostelid=hostel.hostelid, roomnumber="101", capacity=1, roomtype="Non-AC")
+        room = room_service.create_room(admin_user, hostelid=hostel.hostelid, roomnumber="101", capacity=1, roomtype="Pentahouse", monthlyrent=25000)
         session.flush()
 
         staff_service = StaffService(session)

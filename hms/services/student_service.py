@@ -33,6 +33,9 @@ from hms.services.auth_service import AuthService
 from hms.services.exceptions import HMSValidationError, HMSNotFoundError
 from hms.services.rbac import CurrentUser, ensure_self_or_role, require_role
 
+# Base64 data URLs; ~500 KB of image data
+MAX_PHOTO_CHARS = 700_000
+
 CRITICAL_FIELDS = {"rollnumber", "firstname", "lastname", "gender", "dateofbirth"}
 SELF_EDITABLE_FIELDS = {
     "contactphone",
@@ -40,6 +43,12 @@ SELF_EDITABLE_FIELDS = {
     "emergencycontact",
     "bloodgroup",
     "medicalhistory",
+    "email",
+    "college",
+    "course",
+    "yearofstudy",
+    "foodpreference",
+    "photo",
 }
 
 
@@ -66,7 +75,18 @@ class StudentService:
         emergencycontact: str | None = None,
         bloodgroup: str | None = None,
         medicalhistory: str | None = None,
+        email: str | None = None,
+        college: str | None = None,
+        course: str | None = None,
+        yearofstudy: str | None = None,
+        joiningdate: date | None = None,
+        foodpreference: str = "Veg",
+        photo: str | None = None,
     ) -> Student:
+        if foodpreference not in ("Veg", "Non-Veg"):
+            raise HMSValidationError("foodpreference must be Veg or Non-Veg")
+        if photo and len(photo) > MAX_PHOTO_CHARS:
+            raise HMSValidationError("Photo is too large (max about 500 KB)")
         if self.repo.get_by_rollnumber(rollnumber) is not None:
             raise HMSValidationError(f"Roll number '{rollnumber}' already in use")
         login = self.auth.create_login(username, plain_password, role="Student")
@@ -82,6 +102,13 @@ class StudentService:
             emergencycontact=emergencycontact,
             bloodgroup=bloodgroup,
             medicalhistory=medicalhistory,
+            email=email,
+            college=college,
+            course=course,
+            yearofstudy=yearofstudy,
+            joiningdate=joiningdate or date.today(),
+            foodpreference=foodpreference,
+            photo=photo,
         )
         return self.repo.add(student)
 
@@ -135,6 +162,10 @@ class StudentService:
             raise HMSValidationError(
                 f"Fields {invalid} require Admin approval; use request_critical_change() instead"
             )
+        if "foodpreference" in fields and fields["foodpreference"] not in ("Veg", "Non-Veg"):
+            raise HMSValidationError("foodpreference must be Veg or Non-Veg")
+        if fields.get("photo") and len(fields["photo"]) > MAX_PHOTO_CHARS:
+            raise HMSValidationError("Photo is too large (max about 500 KB)")
         for key, value in fields.items():
             setattr(student, key, value)
         self.session.flush()

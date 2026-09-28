@@ -11,11 +11,13 @@ def test_create_hostel_and_room(session):
     room_service = RoomService(session)
 
     hostel = hostel_service.create_hostel(admin, hostelname="Test Block", gendertype="Mixed", totalrooms=2)
-    room = room_service.create_room(admin, hostelid=hostel.hostelid, roomnumber="G1", capacity=3, roomtype="Deluxe")
+    room = room_service.create_room(admin, hostelid=hostel.hostelid, roomnumber="G1", floor=2, roomtype="3 Sharing")
 
     rooms = room_service.list_rooms(hostel.hostelid)
     assert len(rooms) == 1
     assert rooms[0].roomid == room.roomid
+    assert room.capacity == 3 and float(room.monthlyrent) == 8000
+    assert [b.bednumber for b in room.beds] == [1, 2, 3]
 
 
 def test_invalid_gender_type_rejected(session):

@@ -18,11 +18,13 @@ def make_admin(session, username="admin", password="Admin@12345"):
     return CurrentUser(userid=login.userid, username=username, role="Admin")
 
 
-def make_hostel_and_room(session, admin_user, gendertype="Male", capacity=2, roomtype="Non-AC"):
+def make_hostel_and_room(session, admin_user, gendertype="Male", capacity=2, roomtype="Pentahouse", monthlyrent=7000):
     hostel_service = HostelService(session)
     room_service = RoomService(session)
     hostel = hostel_service.create_hostel(admin_user, hostelname=f"Block-{gendertype}-{id(object())}", gendertype=gendertype, totalrooms=1)
-    room = room_service.create_room(admin_user, hostelid=hostel.hostelid, roomnumber="101", capacity=capacity, roomtype=roomtype)
+    room = room_service.create_room(
+        admin_user, hostelid=hostel.hostelid, roomnumber="101", capacity=capacity, roomtype=roomtype, monthlyrent=monthlyrent
+    )
     return hostel, room
 
 

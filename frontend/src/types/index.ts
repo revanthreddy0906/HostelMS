@@ -74,26 +74,71 @@ export interface HostelCreate {
   wardenstaffid?: number | null;
 }
 
+export type SharingType = '3 Sharing' | '4 Sharing' | '5 Sharing' | 'Pentahouse';
+
 export interface Room {
   roomid: number;
   hostelid: number;
   roomnumber: string;
+  floor: number;
   capacity: number;
   occupiedbeds: number;
+  /** Sharing type ('3 Sharing' … 'Pentahouse'), or 'Parent' for parent rooms */
   roomtype: string;
+  monthlyrent: number;
+  acstatus: 'None' | 'Requested' | 'Active';
+  purpose: 'Student' | 'Parent';
 }
 
 export interface RoomCreate {
   hostelid: number;
   roomnumber: string;
-  capacity: number;
   roomtype: string;
+  floor: number;
+  capacity?: number | null;
+  purpose?: 'Student' | 'Parent';
+  monthlyrent?: number | null;
+}
+
+export interface Bed {
+  bedid: number;
+  roomid: number;
+  bednumber: number;
+}
+
+export interface MapBed {
+  bedid: number;
+  bednumber: number;
+  studentid: number | null;
+  studentname: string | null;
+}
+
+export interface MapRoom {
+  roomid: number;
+  roomnumber: string;
+  roomtype: string;
+  purpose: 'Student' | 'Parent';
+  capacity: number;
+  occupiedbeds: number;
+  monthlyrent: number;
+  acstatus: 'None' | 'Requested' | 'Active';
+  beds: MapBed[];
+}
+
+export interface MapHostel {
+  hostelid: number;
+  hostelname: string;
+  gendertype: string;
+  floors: { floor: number; rooms: MapRoom[] }[];
 }
 
 export interface OccupancyRow {
   hostel: string;
+  floor: number;
   room: string;
   type: string;
+  purpose: 'Student' | 'Parent';
+  rent: number;
   capacity: number;
   occupied: number;
   free: number;
@@ -106,17 +151,71 @@ export interface Allocation {
   allocationdate: string;
   vacatedate?: string | null;
   status: string;
+  bedid?: number | null;
+  bednumber?: number | null;
 }
+
+export type BillType = 'Rent' | 'Deposit' | 'AC';
 
 export interface Fee {
   feeid: number;
   studentid: number;
+  billtype: BillType;
+  /** 'YYYY-MM' for rent and AC bills */
+  period?: string | null;
   amountdue: number;
   amountpaid: number;
   duedate: string;
   paymentstatus: string;
   txnreference?: string | null;
+  /** Live late fine for unpaid rent, frozen once paid */
+  latefine: number;
+  latedays?: number | null;
+  totalpayable: number;
+  balance: number;
+  paidon?: string | null;
 }
+
+export interface Payment {
+  paymentid: number;
+  feeid: number;
+  amount: number;
+  paidat: string;
+  method: 'Online' | 'Cash' | 'Settlement';
+  txnreference?: string | null;
+}
+
+export interface FinanceSummary {
+  outstanding: { Rent: number; Deposit: number; AC: number; fines: number };
+  overdue_bills: number;
+  collected_this_month: number;
+}
+
+export interface SettlementPreview {
+  allocationid: number;
+  studentid: number;
+  vacatedate: string;
+  depositheld: number;
+  pendingdues: number;
+  pendingbills: Fee[];
+  availablefordeduction: number;
+  balanceowed: number;
+}
+
+export interface Settlement {
+  settlementid: number;
+  allocationid: number;
+  studentid: number;
+  vacatedate: string;
+  depositheld: number;
+  pendingdues: number;
+  deduction: number;
+  deductionreason?: string | null;
+  refund: number;
+  balanceowed: number;
+}
+
+export type SettingsValues = Record<string, string>;
 
 export interface Complaint {
   complaintid: number;

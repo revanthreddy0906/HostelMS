@@ -6,7 +6,9 @@ from hms.api.schemas.hostel import (
     AssignWardenRequest,
     HostelCreate,
     HostelOut,
+    BedOut,
     MaintenanceStatusRequest,
+    MapHostel,
     OccupancyRow,
     RoomCreate,
     RoomOut,
@@ -50,6 +52,16 @@ def list_rooms(hostelid: int | None = None, db: Session = Depends(get_db), curre
 @rooms_router.post("", response_model=RoomOut, status_code=201)
 def create_room(payload: RoomCreate, db: Session = Depends(get_db), current_user: CurrentUser = Depends(get_current_user)):
     return RoomService(db).create_room(current_user, **payload.model_dump())
+
+
+@rooms_router.get("/map", response_model=list[MapHostel])
+def floor_map(db: Session = Depends(get_db), current_user: CurrentUser = Depends(get_current_user)):
+    return RoomService(db).floor_map(current_user)
+
+
+@rooms_router.get("/{roomid}/free-beds", response_model=list[BedOut])
+def free_beds(roomid: int, db: Session = Depends(get_db), current_user: CurrentUser = Depends(get_current_user)):
+    return RoomService(db).free_beds(roomid)
 
 
 @rooms_router.get("/occupancy", response_model=list[OccupancyRow])

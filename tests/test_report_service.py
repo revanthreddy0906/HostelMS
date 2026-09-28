@@ -9,12 +9,10 @@ from tests.helpers import make_admin, make_hostel_and_room, make_student
 
 
 def _setup_fee(session, admin):
-    hostel, room = make_hostel_and_room(session, admin, gendertype="Male", roomtype="AC")
+    hostel, room = make_hostel_and_room(session, admin, gendertype="Male", monthlyrent=40000)
     student = make_student(session, admin, roll="RG1", gender="Male")
-    AllocationService(session).auto_allocate(admin, student.studentid)
-    fee_service = FeeService(session)
-    fee_service.set_fee_structure(admin, "AC", 40000.00, "Sem1-2026")
-    fee_service.generate_fees_for_active_allocations(admin, "Sem1-2026", date(2026, 12, 31))
+    AllocationService(session).auto_allocate(admin, student.studentid, date(2026, 12, 1))  # raises the ₹3,000 deposit
+    FeeService(session).generate_monthly_rent(admin, "2026-12")
     return student
 
 
@@ -24,8 +22,8 @@ def test_fee_collection_report_and_pdf_excel(session, tmp_path):
 
     report_service = ReportService(session)
     report = report_service.fee_collection_report(admin, date(2026, 1, 1), date(2026, 12, 31))
-    assert report["total_due"] == 40000.00
-    assert len(report["rows"]) == 1
+    assert report["total_due"] == 43000.00  # December rent + security deposit
+    assert len(report["rows"]) == 2
 
     pdf_path = str(tmp_path / "fee_report.pdf")
     pdf_reports.generate_fee_collection_report(pdf_path, report)
@@ -56,7 +54,7 @@ def test_receipt_generation(session, tmp_path):
     admin = make_admin(session)
     student = _setup_fee(session, admin)
     fee_service = FeeService(session)
-    fee = fee_service.list_fees_for_student(admin, student.studentid)[0]
+    fee = next(f for f in fee_service.list_fees_for_student(admin, student.studentid) if f.billtype == "Rent")
     paid_fee = fee_service.pay_fee(admin, fee.feeid, 40000.00)
 
     receipt_path = str(tmp_path / "receipt.pdf")
