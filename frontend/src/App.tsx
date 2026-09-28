@@ -1,28 +1,34 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { MotionConfig } from 'motion/react';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { AppLayout } from './components/AppLayout';
 import { ProtectedRoute } from './components/ProtectedRoute';
-import { LoginPage } from './pages/LoginPage';
-import { DashboardPage } from './pages/DashboardPage';
-import { StudentsPage } from './pages/StudentsPage';
-import { HostelsPage } from './pages/HostelsPage';
-import { AllocationsPage } from './pages/AllocationsPage';
-import { FeesPage } from './pages/FeesPage';
-import { ComplaintsPage } from './pages/ComplaintsPage';
-import { VisitorsPage } from './pages/VisitorsPage';
-import { AttendancePage } from './pages/AttendancePage';
-import { LeavesPage } from './pages/LeavesPage';
-import { ReportsPage } from './pages/ReportsPage';
-import { StaffPage } from './pages/StaffPage';
-import { ForbiddenPage } from './pages/ForbiddenPage';
-import { NotFoundPage } from './pages/NotFoundPage';
+import { LoadingState } from './components/Feedback';
+
+const LoginPage = lazy(() => import('./pages/LoginPage').then((m) => ({ default: m.LoginPage })));
+const DashboardPage = lazy(() => import('./pages/DashboardPage').then((m) => ({ default: m.DashboardPage })));
+const StudentsPage = lazy(() => import('./pages/StudentsPage').then((m) => ({ default: m.StudentsPage })));
+const HostelsPage = lazy(() => import('./pages/HostelsPage').then((m) => ({ default: m.HostelsPage })));
+const AllocationsPage = lazy(() => import('./pages/AllocationsPage').then((m) => ({ default: m.AllocationsPage })));
+const FeesPage = lazy(() => import('./pages/FeesPage').then((m) => ({ default: m.FeesPage })));
+const ComplaintsPage = lazy(() => import('./pages/ComplaintsPage').then((m) => ({ default: m.ComplaintsPage })));
+const VisitorsPage = lazy(() => import('./pages/VisitorsPage').then((m) => ({ default: m.VisitorsPage })));
+const AttendancePage = lazy(() => import('./pages/AttendancePage').then((m) => ({ default: m.AttendancePage })));
+const LeavesPage = lazy(() => import('./pages/LeavesPage').then((m) => ({ default: m.LeavesPage })));
+const ReportsPage = lazy(() => import('./pages/ReportsPage').then((m) => ({ default: m.ReportsPage })));
+const StaffPage = lazy(() => import('./pages/StaffPage').then((m) => ({ default: m.StaffPage })));
+const ForbiddenPage = lazy(() => import('./pages/ForbiddenPage').then((m) => ({ default: m.ForbiddenPage })));
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })));
 
 export default function App() {
   return (
+    <MotionConfig reducedMotion="user">
     <AuthProvider>
       <ToastProvider>
         <BrowserRouter>
+          <Suspense fallback={<LoadingState />}>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/403" element={<ForbiddenPage />} />
@@ -106,8 +112,10 @@ export default function App() {
 
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
+          </Suspense>
         </BrowserRouter>
       </ToastProvider>
     </AuthProvider>
+    </MotionConfig>
   );
 }

@@ -1,15 +1,34 @@
-import { Outlet } from 'react-router-dom';
-import { Sidebar } from './Sidebar';
+import { Suspense } from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
+import { LoadingState } from '@/components/Feedback';
+import { AppSidebar, pageTitleFor } from '@/components/AppSidebar';
+import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { Separator } from '@/components/ui/separator';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 export function AppLayout() {
+  const { pathname } = useLocation();
+  const title = pageTitleFor(pathname);
+
   return (
-    <div className="flex h-dvh w-full overflow-hidden bg-neutral-50">
-      <Sidebar />
-      <main className="min-w-0 flex-1 overflow-y-auto px-8 py-8">
-        <div className="mx-auto max-w-6xl">
-          <Outlet />
-        </div>
-      </main>
-    </div>
+    <TooltipProvider delayDuration={200}>
+      <SidebarProvider>
+        <AppSidebar />
+        <SidebarInset className="bg-neutral-50">
+          <header className="sticky top-0 z-20 flex h-14 shrink-0 items-center gap-2 border-b bg-background/85 px-4 backdrop-blur">
+            <SidebarTrigger className="-ml-1" />
+            <Separator orientation="vertical" className="mr-1 data-[orientation=vertical]:h-4" />
+            <span className="text-sm font-medium text-foreground">{title}</span>
+          </header>
+          <main className="flex-1 px-6 py-8 lg:px-8">
+            <div className="mx-auto max-w-6xl">
+              <Suspense fallback={<LoadingState />}>
+                <Outlet />
+              </Suspense>
+            </div>
+          </main>
+        </SidebarInset>
+      </SidebarProvider>
+    </TooltipProvider>
   );
 }
