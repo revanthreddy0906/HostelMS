@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useReducedMotion } from 'motion/react';
-import { ArrowRight, BedDouble, BedSingle, DoorOpen, MessageSquareWarning, type LucideIcon } from 'lucide-react';
+import { ArrowRight, BedDouble, BedSingle, DoorOpen, MessageSquareWarning, } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 import { useToast } from '@/context/ToastContext';
 import { complaintsApi, leavesApi, roomsApi, studentsApi } from '@/api/endpoints';
@@ -11,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@/components/ui/chart';
-import { NumberTicker } from '@/components/ui/number-ticker';
+import { DashboardHeader, KpiCard, Stat, useReduceMotion } from './shared';
 import { BorderBeam } from '@/components/ui/border-beam';
 
 const OPEN_STATUSES = new Set(['OPEN', 'IN PROGRESS']);
@@ -21,53 +20,9 @@ const chartConfig = {
   free: { label: 'Free', color: 'var(--chart-2)' },
 } satisfies ChartConfig;
 
-function Stat({ value, reduceMotion, suffix = '' }: { value: number; reduceMotion: boolean; suffix?: string }) {
-  return (
-    <span className="text-3xl font-semibold tracking-tight tabular-nums text-foreground">
-      {reduceMotion ? value : <NumberTicker value={value} className="tracking-tight text-foreground" />}
-      {suffix}
-    </span>
-  );
-}
-
-function KpiCard({
-  title,
-  icon: Icon,
-  to,
-  loading,
-  children,
-  footer,
-}: {
-  title: string;
-  icon: LucideIcon;
-  to: string;
-  loading: boolean;
-  children: React.ReactNode;
-  footer: React.ReactNode;
-}) {
-  return (
-    <Link to={to} className="group rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-      <Card className="h-full gap-3 transition-shadow duration-150 ease-out group-hover:shadow-md">
-        <CardHeader>
-          <CardDescription className="font-medium text-muted-foreground">{title}</CardDescription>
-          <CardAction>
-            <span className="flex size-8 items-center justify-center rounded-md bg-primary/10 text-primary">
-              <Icon className="size-4" aria-hidden="true" />
-            </span>
-          </CardAction>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          {loading ? <Skeleton className="h-9 w-20" /> : children}
-          <div className="text-xs text-muted-foreground">{loading ? <Skeleton className="h-3 w-32" /> : footer}</div>
-        </CardContent>
-      </Card>
-    </Link>
-  );
-}
-
 export function AdminDashboard() {
   const { showError } = useToast();
-  const reduceMotion = !!useReducedMotion();
+  const reduceMotion = useReduceMotion();
   const [occupancy, setOccupancy] = useState<OccupancyRow[]>([]);
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [pendingLeaves, setPendingLeaves] = useState<Leave[]>([]);
@@ -126,14 +81,10 @@ export function AdminDashboard() {
   };
 
   const needsAttention = pendingLeaves.length + openComplaints.length;
-  const today = new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' });
 
   return (
     <div className="space-y-6">
-      <div className="animate-in fade-in duration-300">
-          <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Institution-wide overview · {today}</p>
-      </div>
+      <DashboardHeader title="Dashboard" subtitle="Institution-wide overview" />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard
@@ -143,11 +94,11 @@ export function AdminDashboard() {
           loading={loading}
           footer={`${totals.occupied} of ${totals.capacity} beds occupied`}
         >
-          <Stat value={totals.pct} suffix="%" reduceMotion={reduceMotion} />
+          <Stat value={totals.pct} suffix="%" />
           <Progress value={totals.pct} className="h-1.5" aria-label="Bed occupancy" />
         </KpiCard>
         <KpiCard title="Beds available" icon={BedSingle} to="/allocations" loading={loading} footer="Ready for allocation">
-          <Stat value={totals.free} reduceMotion={reduceMotion} />
+          <Stat value={totals.free} />
         </KpiCard>
         <KpiCard
           title="Open complaints"
@@ -156,10 +107,10 @@ export function AdminDashboard() {
           loading={loading}
           footer={`${complaints.length} logged in total`}
         >
-          <Stat value={openComplaints.length} reduceMotion={reduceMotion} />
+          <Stat value={openComplaints.length} />
         </KpiCard>
         <KpiCard title="Pending leaves" icon={DoorOpen} to="/leaves" loading={loading} footer="Awaiting warden decision">
-          <Stat value={pendingLeaves.length} reduceMotion={reduceMotion} />
+          <Stat value={pendingLeaves.length} />
         </KpiCard>
       </div>
 
