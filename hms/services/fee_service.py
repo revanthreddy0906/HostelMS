@@ -81,8 +81,12 @@ class FeeService:
         fee = self.repo.get(feeid)
         if fee is None:
             raise HMSNotFoundError(f"Fee {feeid} not found")
+        ensure_self_or_role(current_user, fee.studentid, "Staff", "Admin")
         if amount <= 0:
             raise HMSValidationError("Payment amount must be positive")
+        balance = float(fee.amountdue) - float(fee.amountpaid)
+        if amount > balance + 0.005:
+            raise HMSValidationError(f"Payment exceeds the outstanding balance of {balance:.2f}")
         result = self.payment_service.charge(amount, payer_reference=f"fee:{feeid}")
         if not result.success:
             raise HMSValidationError(f"Payment failed: {result.message}")

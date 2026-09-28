@@ -160,3 +160,20 @@ def test_role_reads_the_frontend_relies_on(client, actors, role, path):
 def test_me_endpoints_return_callers_own_records(client, actors):
     me = client.get("/api/students/me", headers=actors["student2"]).json()
     assert me["rollnumber"] == "S2"
+
+
+def test_student_can_pay_only_own_fee_and_not_overpay(client, actors, seeded):
+    admin = actors["admin"]
+    assert client.post(
+        "/api/allocations/manual", json={"studentid": actors["own_id"], "roomid": seeded["roomid"]}, headers=admin
+    ).status_code == 200
+    assert client.post(
+        "/api/fees/structure", json={"roomtype": "Non-AC", "amount": 25000, "semester": "Sem1"}, headers=admin
+    ).status_code == 200
+    feeid = client.post("/api/fees/generate", json={"semester": "Sem1", "duedate": "2026-12-31"}, headers=admin).json()[0]["feeid"]
+
+    assert client.post(f"/api/fees/{feeid}/pay", json={"amount": 100}, headers=actors["student2"]).status_code == 403
+    assert client.post(f"/api/fees/{feeid}/pay", json={"amount": 30000}, headers=actors["student"]).status_code in (400, 422)
+    paid = client.post(f"/api/fees/{feeid}/pay", json={"amount": 25000}, headers=actors["student"])
+    assert paid.status_code == 200, paid.text
+    assert paid.json()["paymentstatus"] == "Paid"
