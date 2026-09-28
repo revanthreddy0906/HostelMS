@@ -14,7 +14,7 @@ from hms.models.models import Fee, FeeStructure
 from hms.repositories.repos import FeeRepository, FeeStructureRepository, AllocationRepository, RoomRepository
 from hms.services.exceptions import HMSNotFoundError, HMSValidationError
 from hms.services.payment_service import PaymentGatewayService, default_payment_service
-from hms.services.rbac import CurrentUser, require_role
+from hms.services.rbac import CurrentUser, ensure_self_or_role, require_role
 
 
 class FeeService:
@@ -61,8 +61,20 @@ class FeeService:
         self.session.flush()
         return created
 
-    def list_fees_for_student(self, studentid: int) -> list[Fee]:
+    def list_fees_for_student(self, current_user: CurrentUser, studentid: int) -> list[Fee]:
+        ensure_self_or_role(current_user, studentid, "Staff", "Admin")
         return self.repo.list_by_student(studentid)
+
+    @require_role("Student")
+    def list_my_fees(self, current_user: CurrentUser) -> list[Fee]:
+        return self.repo.list_by_student(current_user.entity_id)
+
+    def get_fee_for_receipt(self, current_user: CurrentUser, feeid: int) -> Fee:
+        fee = self.repo.get(feeid)
+        if fee is None:
+            raise HMSNotFoundError(f"Fee {feeid} not found")
+        ensure_self_or_role(current_user, fee.studentid, "Staff", "Admin")
+        return fee
 
     @require_role("Admin", "Staff", "Student")
     def pay_fee(self, current_user: CurrentUser, feeid: int, amount: float) -> Fee:

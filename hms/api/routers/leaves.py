@@ -11,17 +11,17 @@ router = APIRouter(prefix="/api/leaves", tags=["leaves"])
 
 @router.get("/pending", response_model=list[LeaveOut])
 def list_pending(db: Session = Depends(get_db), current_user: CurrentUser = Depends(get_current_user)):
-    return LeaveService(db).list_pending()
+    return LeaveService(db).list_pending(current_user)
 
 
 @router.get("/me", response_model=list[LeaveOut])
 def my_leaves(db: Session = Depends(get_db), current_user: CurrentUser = Depends(get_current_user)):
-    return LeaveService(db).list_for_student(current_user.entity_id)
+    return LeaveService(db).list_mine(current_user)
 
 
 @router.get("/student/{studentid}", response_model=list[LeaveOut])
 def list_for_student(studentid: int, db: Session = Depends(get_db), current_user: CurrentUser = Depends(get_current_user)):
-    return LeaveService(db).list_for_student(studentid)
+    return LeaveService(db).list_for_student(current_user, studentid)
 
 
 @router.post("", response_model=LeaveOut, status_code=201)
@@ -38,7 +38,7 @@ def decide_leave(
 
 @router.get("/{leaveid}/gatepass-qr")
 def get_gatepass_qr(leaveid: int, db: Session = Depends(get_db), current_user: CurrentUser = Depends(get_current_user)):
-    png_bytes = LeaveService(db).get_gatepass_qr(leaveid)
+    png_bytes = LeaveService(db).get_gatepass_qr(current_user, leaveid)
     return Response(content=png_bytes, media_type="image/png")
 
 

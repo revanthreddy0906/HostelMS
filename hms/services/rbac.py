@@ -26,6 +26,20 @@ class CurrentUser:
         return f"CurrentUser(userid={self.userid}, username={self.username!r}, role={self.role!r})"
 
 
+def ensure_self_or_role(current_user: CurrentUser, studentid: int, *allowed_roles: str) -> None:
+    """Allow a Student to reach only their own studentid; any other caller must hold one of allowed_roles.
+
+    entity_id is only a studentid for Student logins (for Warden/Staff it is a staffid), so the
+    ownership match is checked for Students alone.
+    """
+    if current_user is not None and current_user.role == "Student" and current_user.entity_id == studentid:
+        return
+    if current_user is None or current_user.role not in allowed_roles:
+        raise HMSPermissionError(
+            f"Role '{getattr(current_user, 'role', None)}' may not access records of student {studentid}"
+        )
+
+
 def require_role(*allowed_roles: str):
     """Decorator for service methods: first positional arg (after self) must be a CurrentUser."""
 

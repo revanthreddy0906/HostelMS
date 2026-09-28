@@ -16,13 +16,13 @@ def test_visitor_entry_and_exit_logging(session):
     visitor = visitor_service.log_entry(staff_user, "Mr. Guardian", student.studentid, "Father", contactnumber="9111111111")
     assert visitor.outtime is None
 
-    dashboard = visitor_service.security_dashboard()
+    dashboard = visitor_service.security_dashboard(staff_user)
     assert any(v["visitorid"] == visitor.visitorid for v in dashboard)
 
     exited = visitor_service.log_exit(staff_user, visitor.visitorid)
     assert exited.outtime is not None
 
-    dashboard_after = visitor_service.security_dashboard()
+    dashboard_after = visitor_service.security_dashboard(staff_user)
     assert not any(v["visitorid"] == visitor.visitorid for v in dashboard_after)
 
 
@@ -40,6 +40,6 @@ def test_overstaying_visitor_flagged(session, monkeypatch):
     visitor.intime = datetime.utcnow() - timedelta(hours=MAX_VISITING_HOURS + 1)
     session.flush()
 
-    dashboard = visitor_service.security_dashboard()
+    dashboard = visitor_service.security_dashboard(staff_user)
     row = next(v for v in dashboard if v["visitorid"] == visitor.visitorid)
     assert row["overstaying"] is True

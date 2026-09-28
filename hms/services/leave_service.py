@@ -25,7 +25,7 @@ from hms.models.models import Leave
 from hms.repositories.repos import LeaveRepository, StudentRepository
 from hms.services.exceptions import HMSValidationError, HMSNotFoundError
 from hms.services.notification_service import NotificationService, default_notification_service
-from hms.services.rbac import CurrentUser, require_role
+from hms.services.rbac import CurrentUser, ensure_self_or_role, require_role
 
 # Server-side secret for gate-pass checksum. In production this would come
 # from a secrets manager / env var; a local dev default is fine here since
@@ -111,8 +111,10 @@ class LeaveService:
             self.session.flush()
         return leave
 
-    def get_gatepass_qr(self, leaveid: int) -> bytes:
+    def get_gatepass_qr(self, current_user: CurrentUser, leaveid: int) -> bytes:
         leave = self.repo.get(leaveid)
+        if leave is not None:
+            ensure_self_or_role(current_user, leave.studentid, "Warden", "Staff", "Admin")
         if leave is None or leave.status != "Approved" or not leave.gatepasscode:
             raise HMSValidationError("No valid gate pass for this leave")
         return make_gatepass_qr_png(leave.gatepasscode)
@@ -151,8 +153,14 @@ class LeaveService:
         self.session.flush()
         return leave
 
-    def list_for_student(self, studentid: int):
+    def list_for_student(self, current_user: CurrentUser, studentid: int):
+        ensure_self_or_role(current_user, studentid, "Warden", "Staff", "Admin")
         return self.repo.list_by_student(studentid)
 
-    def list_pending(self):
+    @require_role("Student")
+    def list_mine(self, current_user: CurrentUser):
+        return self.repo.list_by_student(current_user.entity_id)
+
+    @require_role("Warden", "Admin")
+    def list_pending(self, current_user: CurrentUser):
         return self.repo.list_by_status("Pending")

@@ -22,12 +22,12 @@ def generate_fees(payload: GenerateFeesRequest, db: Session = Depends(get_db), c
 
 @router.get("/student/{studentid}", response_model=list[FeeOut])
 def list_fees_for_student(studentid: int, db: Session = Depends(get_db), current_user: CurrentUser = Depends(get_current_user)):
-    return FeeService(db).list_fees_for_student(studentid)
+    return FeeService(db).list_fees_for_student(current_user, studentid)
 
 
 @router.get("/me", response_model=list[FeeOut])
 def my_fees(db: Session = Depends(get_db), current_user: CurrentUser = Depends(get_current_user)):
-    return FeeService(db).list_fees_for_student(current_user.entity_id)
+    return FeeService(db).list_my_fees(current_user)
 
 
 @router.post("/{feeid}/pay", response_model=FeeOut)

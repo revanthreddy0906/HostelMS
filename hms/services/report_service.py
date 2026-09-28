@@ -9,6 +9,7 @@ from datetime import date
 from sqlalchemy.orm import Session
 
 from hms.repositories.repos import FeeRepository, LeaveRepository, ComplaintRepository
+from hms.services.rbac import CurrentUser, require_role
 from hms.services.room_service import RoomService
 
 
@@ -20,7 +21,8 @@ class ReportService:
         self.complaint_repo = ComplaintRepository(session)
         self.room_service = RoomService(session)
 
-    def fee_collection_report(self, start: date, end: date) -> dict:
+    @require_role("Admin", "Warden")
+    def fee_collection_report(self, current_user: CurrentUser, start: date, end: date) -> dict:
         fees = self.fee_repo.list_between(start, end)
         total_due = sum(float(f.amountdue) for f in fees)
         total_collected = sum(float(f.amountpaid) for f in fees)
@@ -43,10 +45,12 @@ class ReportService:
             "rows": rows,
         }
 
-    def occupancy_report(self) -> list[dict]:
+    @require_role("Admin", "Warden")
+    def occupancy_report(self, current_user: CurrentUser) -> list[dict]:
         return self.room_service.occupancy_report_rows()
 
-    def leave_log_report(self) -> list[dict]:
+    @require_role("Admin", "Warden")
+    def leave_log_report(self, current_user: CurrentUser) -> list[dict]:
         leaves = self.leave_repo.list_all()
         return [
             {
@@ -61,7 +65,8 @@ class ReportService:
             for l in leaves
         ]
 
-    def complaint_resolution_timeline(self) -> list[dict]:
+    @require_role("Admin", "Warden")
+    def complaint_resolution_timeline(self, current_user: CurrentUser) -> list[dict]:
         complaints = self.complaint_repo.list_all_ordered()
         return [
             {

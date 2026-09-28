@@ -17,12 +17,12 @@ router = APIRouter(prefix="/api/allocations", tags=["allocations"])
 
 @router.get("", response_model=list[AllocationOut])
 def list_active_allocations(db: Session = Depends(get_db), current_user: CurrentUser = Depends(get_current_user)):
-    return AllocationService(db).repo.list_active()
+    return AllocationService(db).list_active(current_user)
 
 
 @router.get("/student/{studentid}", response_model=AllocationOut | None)
 def get_student_allocation(studentid: int, db: Session = Depends(get_db), current_user: CurrentUser = Depends(get_current_user)):
-    return AllocationService(db).repo.active_for_student(studentid)
+    return AllocationService(db).active_for_student(current_user, studentid)
 
 
 @router.post("/auto", response_model=AllocationOut)

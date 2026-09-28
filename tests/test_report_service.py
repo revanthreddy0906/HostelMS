@@ -23,7 +23,7 @@ def test_fee_collection_report_and_pdf_excel(session, tmp_path):
     _setup_fee(session, admin)
 
     report_service = ReportService(session)
-    report = report_service.fee_collection_report(date(2026, 1, 1), date(2026, 12, 31))
+    report = report_service.fee_collection_report(admin, date(2026, 1, 1), date(2026, 12, 31))
     assert report["total_due"] == 40000.00
     assert len(report["rows"]) == 1
 
@@ -40,7 +40,7 @@ def test_occupancy_report_and_exports(session, tmp_path):
     admin = make_admin(session)
     _setup_fee(session, admin)
     report_service = ReportService(session)
-    rows = report_service.occupancy_report()
+    rows = report_service.occupancy_report(admin)
     assert len(rows) >= 1
 
     pdf_path = str(tmp_path / "occ.pdf")
@@ -56,7 +56,7 @@ def test_receipt_generation(session, tmp_path):
     admin = make_admin(session)
     student = _setup_fee(session, admin)
     fee_service = FeeService(session)
-    fee = fee_service.list_fees_for_student(student.studentid)[0]
+    fee = fee_service.list_fees_for_student(admin, student.studentid)[0]
     paid_fee = fee_service.pay_fee(admin, fee.feeid, 40000.00)
 
     receipt_path = str(tmp_path / "receipt.pdf")

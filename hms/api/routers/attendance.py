@@ -13,7 +13,7 @@ router = APIRouter(prefix="/api/attendance", tags=["attendance"])
 
 @router.get("/date/{on_date}", response_model=list[AttendanceOut])
 def list_for_date(on_date: date, db: Session = Depends(get_db), current_user: CurrentUser = Depends(get_current_user)):
-    return AttendanceService(db).list_for_date(on_date)
+    return AttendanceService(db).list_for_date(current_user, on_date)
 
 
 @router.post("", response_model=AttendanceOut)

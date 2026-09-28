@@ -34,7 +34,8 @@ class StaffService:
     def list_staff(self, current_user: CurrentUser):
         return self.repo.list_all()
 
-    def get_staff(self, staffid: int) -> Staff:
+    @require_role("Admin")
+    def get_staff(self, current_user: CurrentUser, staffid: int) -> Staff:
         staff = self.repo.get(staffid)
         if staff is None:
             raise HMSNotFoundError(f"Staff {staffid} not found")

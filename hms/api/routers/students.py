@@ -23,12 +23,12 @@ def list_students(db: Session = Depends(get_db), current_user: CurrentUser = Dep
 
 @router.get("/me", response_model=StudentOut)
 def get_my_profile(db: Session = Depends(get_db), current_user: CurrentUser = Depends(get_current_user)):
-    return StudentService(db).get_student(current_user.entity_id)
+    return StudentService(db).get_my_profile(current_user)
 
 
 @router.get("/{studentid}", response_model=StudentOut)
 def get_student(studentid: int, db: Session = Depends(get_db), current_user: CurrentUser = Depends(get_current_user)):
-    return StudentService(db).get_student(studentid)
+    return StudentService(db).view_student(current_user, studentid)
 
 
 @router.post("", response_model=StudentOut, status_code=201)

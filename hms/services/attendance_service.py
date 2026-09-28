@@ -42,7 +42,8 @@ class AttendanceService:
         record = Attendance(studentid=studentid, date=on_date, status=status, markedby=current_user.userid)
         return self.repo.add(record)
 
-    def list_for_date(self, on_date: date):
+    @require_role("Warden", "Staff", "Admin")
+    def list_for_date(self, current_user: CurrentUser, on_date: date):
         return self.repo.list_for_date(on_date)
 
     @require_role("Warden", "Admin")

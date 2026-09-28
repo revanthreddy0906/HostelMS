@@ -22,12 +22,12 @@ def _to_out(v) -> VisitorOut:
 
 @router.get("/dashboard", response_model=list[SecurityDashboardRow])
 def security_dashboard(db: Session = Depends(get_db), current_user: CurrentUser = Depends(get_current_user)):
-    return VisitorService(db).security_dashboard()
+    return VisitorService(db).security_dashboard(current_user)
 
 
 @router.get("/student/{studentid}", response_model=list[VisitorOut])
 def list_for_student(studentid: int, db: Session = Depends(get_db), current_user: CurrentUser = Depends(get_current_user)):
-    return [_to_out(v) for v in VisitorService(db).list_for_student(studentid)]
+    return [_to_out(v) for v in VisitorService(db).list_for_student(current_user, studentid)]
 
 
 @router.post("", response_model=VisitorOut, status_code=201)

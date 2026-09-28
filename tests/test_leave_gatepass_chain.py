@@ -39,7 +39,7 @@ def test_full_leave_to_exit_entry_chain(session):
     assert decoded_leaveid == leave.leaveid
 
     # QR PNG can be generated from the approved gate pass
-    qr_bytes = leave_service.get_gatepass_qr(leave.leaveid)
+    qr_bytes = leave_service.get_gatepass_qr(student_user, leave.leaveid)
     assert qr_bytes[:8] == b"\x89PNG\r\n\x1a\n"  # PNG magic bytes
 
     # 3. Security scans the pass and logs exit
@@ -89,4 +89,4 @@ def test_rejected_leave_has_no_gatepass(session):
     assert rejected.status == "Rejected"
     assert rejected.gatepasscode is None
     with pytest.raises(HMSValidationError):
-        leave_service.get_gatepass_qr(leave.leaveid)
+        leave_service.get_gatepass_qr(student_user, leave.leaveid)

@@ -21,7 +21,7 @@ from sqlalchemy.orm import Session
 from hms.models.models import Allocation, Room, Student, Hostel
 from hms.repositories.repos import AllocationRepository, RoomRepository, StudentRepository, HostelRepository
 from hms.services.exceptions import CapacityExceededError, HMSNotFoundError, HMSValidationError
-from hms.services.rbac import CurrentUser, require_role
+from hms.services.rbac import CurrentUser, ensure_self_or_role, require_role
 
 
 def _gender_matches(hostel_gendertype: str, student_gender: str) -> bool:
@@ -147,3 +147,11 @@ class AllocationService:
 
         new_allocation = self._allocate_room_atomic(student, new_room, change_date)
         return new_allocation
+
+    @require_role("Admin", "Warden")
+    def list_active(self, current_user: CurrentUser) -> list[Allocation]:
+        return self.repo.list_active()
+
+    def active_for_student(self, current_user: CurrentUser, studentid: int) -> Allocation | None:
+        ensure_self_or_role(current_user, studentid, "Admin", "Warden")
+        return self.repo.active_for_student(studentid)

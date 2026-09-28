@@ -83,8 +83,10 @@ class ComplaintService:
         self.session.flush()
         return complaint
 
-    def list_for_student(self, studentid: int):
-        return self.repo.list_by_student(studentid)
+    @require_role("Student")
+    def list_mine(self, current_user: CurrentUser):
+        return self.repo.list_by_student(current_user.entity_id)
 
-    def list_all(self):
+    @require_role("Staff", "Warden", "Admin")
+    def list_all(self, current_user: CurrentUser):
         return self.repo.list_all_ordered()

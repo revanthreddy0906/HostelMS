@@ -31,7 +31,7 @@ from hms.models.models import Student
 from hms.repositories.repos import StudentRepository
 from hms.services.auth_service import AuthService
 from hms.services.exceptions import HMSValidationError, HMSNotFoundError
-from hms.services.rbac import CurrentUser, require_role
+from hms.services.rbac import CurrentUser, ensure_self_or_role, require_role
 
 CRITICAL_FIELDS = {"rollnumber", "firstname", "lastname", "gender", "dateofbirth"}
 SELF_EDITABLE_FIELDS = {
@@ -107,6 +107,14 @@ class StudentService:
     @require_role("Admin", "Warden", "Staff")
     def list_students(self, current_user: CurrentUser):
         return self.repo.list_all()
+
+    def view_student(self, current_user: CurrentUser, studentid: int) -> Student:
+        ensure_self_or_role(current_user, studentid, "Admin", "Warden", "Staff")
+        return self.get_student(studentid)
+
+    @require_role("Student")
+    def get_my_profile(self, current_user: CurrentUser) -> Student:
+        return self.get_student(current_user.entity_id)
 
     def get_student(self, studentid: int) -> Student:
         student = self.repo.get(studentid)

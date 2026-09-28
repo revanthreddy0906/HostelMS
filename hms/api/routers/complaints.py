@@ -11,12 +11,12 @@ router = APIRouter(prefix="/api/complaints", tags=["complaints"])
 
 @router.get("", response_model=list[ComplaintOut])
 def list_complaints(db: Session = Depends(get_db), current_user: CurrentUser = Depends(get_current_user)):
-    return ComplaintService(db).list_all()
+    return ComplaintService(db).list_all(current_user)
 
 
 @router.get("/me", response_model=list[ComplaintOut])
 def my_complaints(db: Session = Depends(get_db), current_user: CurrentUser = Depends(get_current_user)):
-    return ComplaintService(db).list_for_student(current_user.entity_id)
+    return ComplaintService(db).list_mine(current_user)
 
 
 @router.post("", response_model=ComplaintOut, status_code=201)

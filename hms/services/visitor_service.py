@@ -13,7 +13,7 @@ from hms.config import MAX_VISITING_HOURS
 from hms.models.models import Visitor
 from hms.repositories.repos import VisitorRepository, StudentRepository
 from hms.services.exceptions import HMSValidationError, HMSNotFoundError
-from hms.services.rbac import CurrentUser, require_role
+from hms.services.rbac import CurrentUser, ensure_self_or_role, require_role
 
 
 class VisitorService:
@@ -50,7 +50,8 @@ class VisitorService:
         self.session.flush()
         return visitor
 
-    def security_dashboard(self) -> list[dict]:
+    @require_role("Staff", "Warden", "Admin")
+    def security_dashboard(self, current_user: CurrentUser) -> list[dict]:
         """FR-VM-02: active visitors, flagged if overstaying MAX_VISITING_HOURS."""
         now = datetime.utcnow()
         rows = []
@@ -68,5 +69,6 @@ class VisitorService:
             )
         return rows
 
-    def list_for_student(self, studentid: int):
+    def list_for_student(self, current_user: CurrentUser, studentid: int):
+        ensure_self_or_role(current_user, studentid, "Staff", "Warden", "Admin")
         return self.repo.list_by_student(studentid)

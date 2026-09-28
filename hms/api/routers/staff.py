@@ -21,4 +21,4 @@ def create_staff(payload: StaffCreate, db: Session = Depends(get_db), current_us
 
 @router.get("/{staffid}", response_model=StaffOut)
 def get_staff(staffid: int, db: Session = Depends(get_db), current_user: CurrentUser = Depends(get_current_user)):
-    return StaffService(db).get_staff(staffid)
+    return StaffService(db).get_staff(current_user, staffid)
