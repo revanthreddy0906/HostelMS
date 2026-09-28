@@ -74,6 +74,8 @@ export function AllocationsPage() {
   }, [map]);
   const allocated = useMemo(() => new Set(allocations.map((a) => a.studentid)), [allocations]);
   const unallocated = students.filter((s) => !allocated.has(s.studentid));
+  // Never-housed students; vacated residents can still be re-allocated from the dialog.
+  const awaiting = unallocated.filter((s) => s.residentstatus === 'NEW');
   const freeBeds = map.reduce(
     (n, h) => n + h.floors.reduce((m, f) => m + f.rooms.filter((r) => r.purpose === 'Student').reduce((k, r) => k + r.capacity - r.occupiedbeds, 0), 0),
     0,
@@ -312,7 +314,7 @@ export function AllocationsPage() {
     <div className="space-y-6">
       <PageHeader
         title="Allocations"
-        subtitle={loading ? 'Loading…' : `${allocations.length} housed · ${unallocated.length} awaiting a room · ${freeBeds} beds free`}
+        subtitle={loading ? 'Loading…' : `${allocations.length} housed · ${awaiting.length} awaiting a room · ${freeBeds} beds free`}
         actions={
           <Button onClick={() => openAllocate()}>
             <Plus /> Allocate bed
@@ -343,11 +345,11 @@ export function AllocationsPage() {
           <CardContent>
             {loading ? (
               <LoadingState />
-            ) : unallocated.length === 0 ? (
+            ) : awaiting.length === 0 ? (
               <EmptyState title="Everyone is housed" />
             ) : (
               <ul className="space-y-2">
-                {unallocated.map((s) => (
+                {awaiting.map((s) => (
                   <li key={s.studentid} className="flex items-center justify-between gap-2 rounded-md border p-2.5">
                     <PersonCell name={`${s.firstname} ${s.lastname}`} sub={`${s.rollnumber} · ${s.gender}`} />
                     <div className="flex shrink-0 gap-1">
@@ -391,7 +393,7 @@ export function AllocationsPage() {
             resetPicker(sid);
           }}
           placeholder="Select a student"
-          options={unallocated.map((s) => ({ value: s.studentid, label: `${s.firstname} ${s.lastname} (${s.rollnumber})` }))}
+          options={unallocated.map((s) => ({ value: s.studentid, label: `${s.firstname} ${s.lastname} (${s.rollnumber})${s.residentstatus === 'VACATED' ? ' · returning' : ''}` }))}
         />
         <Tabs value={mode} onValueChange={(v) => setMode(v as Mode)} className="mb-4">
           <TabsList className="w-full">

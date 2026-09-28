@@ -13,9 +13,16 @@ import { useConfirm } from '../components/ConfirmDialog';
 import { RowActions } from '../components/RowActions';
 import { PersonCell, initials } from '../components/PersonCell';
 import { FormSection } from '../components/FormSection';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '../components/Badge';
+import { PhotoInput } from '../components/PhotoInput';
 import { studentsApi } from '../api/endpoints';
 import type { Student, StudentCreate, StudentSelfUpdate, CriticalChangeRequest } from '../types';
+
+/** Optional fields left blank are sent as null so the API doesn't reject empty dates or emails. */
+function clean<T extends object>(values: T): T {
+  return Object.fromEntries(Object.entries(values).map(([k, v]) => [k, v === '' ? null : v])) as T;
+}
 
 export function StudentsPage() {
   const { user } = useAuth();
@@ -37,6 +44,12 @@ const emptyForm: StudentCreate = {
   emergencycontact: '',
   bloodgroup: '',
   medicalhistory: '',
+  email: '',
+  college: '',
+  course: '',
+  yearofstudy: '',
+  joiningdate: '',
+  foodpreference: 'Veg',
 };
 
 function StudentsAdminPage() {
@@ -82,10 +95,10 @@ function StudentsAdminPage() {
     setSaving(true);
     try {
       if (editing) {
-        await studentsApi.update(editing.studentid, form);
+        await studentsApi.update(editing.studentid, clean(form));
         showToast('Student updated.', 'success');
       } else {
-        await studentsApi.create(form);
+        await studentsApi.create(clean(form));
         showToast('Student created.', 'success');
       }
       setModalOpen(false);
@@ -121,10 +134,25 @@ function StudentsAdminPage() {
       render: (s) => <PersonCell name={`${s.firstname} ${s.lastname}`} sub={s.rollnumber} />,
       sortValue: (s) => `${s.firstname} ${s.lastname}`,
     },
+    {
+      key: 'study',
+      header: 'College / course',
+      sortValue: (s) => s.college ?? '',
+      render: (s) =>
+        s.college ? (
+          <div>
+            <div>{s.college}</div>
+            <div className="text-xs text-muted-foreground">{[s.course, s.yearofstudy].filter(Boolean).join(' · ')}</div>
+          </div>
+        ) : (
+          <span className="text-muted-foreground">—</span>
+        ),
+    },
     { key: 'gender', header: 'Gender', render: (s) => s.gender, sortValue: (s) => s.gender },
+    { key: 'food', header: 'Food', render: (s) => s.foodpreference ?? '—' },
+    { key: 'status', header: 'Status', sortValue: (s) => s.residentstatus, render: (s) => <Badge status={s.residentstatus === 'NEW' ? 'PENDING' : s.residentstatus} /> },
     { key: 'phone', header: 'Contact', render: (s) => s.contactphone },
-    { key: 'guardian', header: 'Guardian', render: (s) => s.guardianphone },
-    { key: 'blood', header: 'Blood group', render: (s) => s.bloodgroup || <span className="text-muted-foreground">—</span> },
+
     {
       key: 'actions',
       header: '',
@@ -162,8 +190,8 @@ function StudentsAdminPage() {
         loading={loading}
         emptyMessage="No students yet"
         emptyHint="Add a student to create their login and resident profile."
-        searchText={(s) => `${s.firstname} ${s.lastname} ${s.rollnumber} ${s.contactphone} ${s.guardianphone}`}
-        searchPlaceholder="Search by name, roll no. or phone"
+        searchText={(s) => `${s.firstname} ${s.lastname} ${s.rollnumber} ${s.contactphone} ${s.guardianphone} ${s.college ?? ''} ${s.course ?? ''}`}
+        searchPlaceholder="Search by name, roll no., phone or college"
       />
 
       <Modal
@@ -210,12 +238,28 @@ function StudentsAdminPage() {
             />
             <TextField label="Date of birth" type="date" value={form.dateofbirth ?? ''} onChange={(e) => set({ dateofbirth: e.target.value })} />
           </FormSection>
+          <FormSection title="Studies">
+            <TextField label="College / institution" value={form.college ?? ''} onChange={(e) => set({ college: e.target.value })} />
+            <TextField label="Course" placeholder="e.g. B.E. CSE" value={form.course ?? ''} onChange={(e) => set({ course: e.target.value })} />
+            <TextField label="Year / semester" placeholder="e.g. 3rd year" value={form.yearofstudy ?? ''} onChange={(e) => set({ yearofstudy: e.target.value })} />
+            <TextField label="Joining date" type="date" value={form.joiningdate ?? ''} onChange={(e) => set({ joiningdate: e.target.value })} />
+          </FormSection>
           <FormSection title="Contact">
+            <TextField label="Email" type="email" value={form.email ?? ''} onChange={(e) => set({ email: e.target.value })} />
             <TextField label="Contact phone" type="tel" value={form.contactphone ?? ''} onChange={(e) => set({ contactphone: e.target.value })} />
             <TextField label="Guardian phone" type="tel" value={form.guardianphone ?? ''} onChange={(e) => set({ guardianphone: e.target.value })} />
             <TextField label="Emergency contact" value={form.emergencycontact ?? ''} onChange={(e) => set({ emergencycontact: e.target.value })} />
           </FormSection>
-          <FormSection title="Medical">
+          <FormSection title="Food and medical">
+            <SelectField
+              label="Food preference"
+              value={form.foodpreference ?? 'Veg'}
+              onChange={(e) => set({ foodpreference: e.target.value as 'Veg' | 'Non-Veg' })}
+              options={[
+                { value: 'Veg', label: 'Veg' },
+                { value: 'Non-Veg', label: 'Non-Veg' },
+              ]}
+            />
             <TextField label="Blood group" value={form.bloodgroup ?? ''} onChange={(e) => set({ bloodgroup: e.target.value })} />
             <div className="sm:col-span-2">
               <TextareaField label="Medical history" value={form.medicalhistory ?? ''} onChange={(e) => set({ medicalhistory: e.target.value })} />
@@ -256,16 +300,24 @@ function ProfileView({ s, onApprove }: { s: Student; onApprove: () => void }) {
     <div className="space-y-5 text-sm">
       <div className="flex items-center gap-3">
         <Avatar className="size-12">
+          {s.photo && <AvatarImage src={s.photo} alt="" className="object-cover" />}
           <AvatarFallback className="bg-primary/10 font-medium text-primary">{initials(name)}</AvatarFallback>
         </Avatar>
         <div>
-          <div className="text-base font-semibold">{name}</div>
+          <div className="flex items-center gap-2 text-base font-semibold">
+            {name} <Badge status={s.residentstatus === 'NEW' ? 'PENDING' : s.residentstatus} />
+          </div>
           <div className="text-muted-foreground">
             {s.rollnumber} · {s.gender}
+            {s.joiningdate ? ` · joined ${s.joiningdate}` : ''}
           </div>
         </div>
       </div>
       <dl className="grid grid-cols-2 gap-x-6 gap-y-4 rounded-lg border p-4">
+        <Detail label="College" value={s.college || '—'} />
+        <Detail label="Course / year" value={[s.course, s.yearofstudy].filter(Boolean).join(' · ') || '—'} />
+        <Detail label="Email" value={s.email || '—'} />
+        <Detail label="Food preference" value={s.foodpreference || '—'} />
         <Detail label="Date of birth" value={s.dateofbirth} />
         <Detail label="Blood group" value={s.bloodgroup || '—'} />
         <Detail label="Contact phone" value={s.contactphone} />
@@ -335,6 +387,12 @@ function StudentSelfPage({ studentId }: { studentId: number | null }) {
           emergencycontact: p.emergencycontact,
           bloodgroup: p.bloodgroup,
           medicalhistory: p.medicalhistory,
+          email: p.email,
+          college: p.college,
+          course: p.course,
+          yearofstudy: p.yearofstudy,
+          foodpreference: p.foodpreference ?? 'Veg',
+          photo: p.photo,
         });
       } catch (err) {
         showError(err, 'Failed to load your profile.');
@@ -347,7 +405,7 @@ function StudentSelfPage({ studentId }: { studentId: number | null }) {
   async function saveProfile() {
     setSaving(true);
     try {
-      const updated = await studentsApi.updateMyProfile(form);
+      const updated = await studentsApi.updateMyProfile(clean(form));
       setProfile(updated);
       showToast('Profile updated.', 'success');
     } catch (err) {
@@ -377,7 +435,23 @@ function StudentSelfPage({ studentId }: { studentId: number | null }) {
     <div>
       <PageHeader title="My profile" subtitle={`${profile.firstname} ${profile.lastname} · ${profile.rollnumber}`} />
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <Card title="Contact and medical details" description="You can update these any time.">
+        <Card title="My details" description="You can update these any time.">
+          <PhotoInput value={form.photo ?? null} onChange={(photo) => setForm({ ...form, photo })} label="Profile photo (optional)" />
+          <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
+            <TextField label="Email" type="email" value={form.email ?? ''} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+            <SelectField
+              label="Food preference"
+              value={form.foodpreference ?? 'Veg'}
+              onChange={(e) => setForm({ ...form, foodpreference: e.target.value as 'Veg' | 'Non-Veg' })}
+              options={[
+                { value: 'Veg', label: 'Veg' },
+                { value: 'Non-Veg', label: 'Non-Veg' },
+              ]}
+            />
+            <TextField label="College / institution" value={form.college ?? ''} onChange={(e) => setForm({ ...form, college: e.target.value })} />
+            <TextField label="Course" value={form.course ?? ''} onChange={(e) => setForm({ ...form, course: e.target.value })} />
+            <TextField label="Year / semester" value={form.yearofstudy ?? ''} onChange={(e) => setForm({ ...form, yearofstudy: e.target.value })} />
+          </div>
           <TextField label="Contact phone" value={form.contactphone ?? ''} onChange={(e) => setForm({ ...form, contactphone: e.target.value })} />
           <TextField label="Guardian phone" value={form.guardianphone ?? ''} onChange={(e) => setForm({ ...form, guardianphone: e.target.value })} />
           <TextField

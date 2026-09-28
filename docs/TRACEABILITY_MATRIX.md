@@ -57,3 +57,25 @@ test).
 capacity, then attempts one more allocation, asserting the operation is
 rejected (`CapacityExceededError` / HTTP 409) AND that `Room.occupiedbeds`
 and the `Allocation` table are left completely unchanged after rollback.
+
+## PG overview document features
+
+Added on top of the SRS at the project owner's request (see
+docs/SRS_AMBIGUITIES.md §15 for the SRS deviations).
+
+| Feature | Module (service) | API | UI page | DB table(s) | Test | Status |
+|---|---|---|---|---|---|---|
+| Floors, beds, sharing types, floor-wise bed map | `RoomService.create_room/floor_map/free_beds` | `POST /api/rooms`, `GET /api/rooms/map`, `/rooms/{id}/free-beds` | `HostelsPage` (floor map), `FloorMap` | room, bed | `test_room_hostel_service.py`, `test_settlement_and_beds.py` | ✅ |
+| Floor → room → bed allocation; parent rooms never allocated | `AllocationService.manual_allocate/change_room` | `POST /api/allocations/manual`, `/change-room` | `AllocationsPage` | allocation, bed | `test_settlement_and_beds.py` | ✅ |
+| Monthly rent, deposit, late fine, payment history | `FeeService.generate_monthly_rent/ensure_deposit/fine_for/pay_fee` | `POST /api/fees/generate-rent`, `GET /api/fees/*/payments`, `/fees/summary` | `FeesPage` | fee, payment | `test_fee_service.py` | ✅ |
+| Vacating settlement | `SettlementService.preview/settle` | `GET /api/allocations/{id}/settlement-preview`, `POST /{id}/settle` | `AllocationsPage` (Vacate and settle) | settlement | `test_settlement_and_beds.py` | ✅ |
+| Settings (due day, fine, deposit, rents, AC rate) | `SettingsService` | `GET/PUT /api/settings` | `SettingsPage` | setting | `test_fee_service.py::test_fine_rate_and_due_day_are_configurable` | ✅ |
+| Weekly food menu, veg/non-veg, fryums twice a week | `MenuService` | `GET/PUT /api/food-menu` | `FoodMenuPage`, student dashboard | food_menu | `test_pg_features.py` | ✅ |
+| Maintenance requests (priority, photo, assignment) | `MaintenanceService` | `/api/maintenance*` | `MaintenancePage` | maintenance_request | `test_pg_features.py` | ✅ |
+| Complaints & feedback (new categories, food rating, anonymous) | `ComplaintService` | `/api/complaints*` | `ComplaintsPage` | complaint | `test_complaint_service.py` | ✅ |
+| AC electricity billing | `ACService` | `/api/ac/*` | `ACBillingPage`, student dashboard (request AC) | room.acstatus, ac_reading, fee | `test_pg_features.py` | ✅ |
+| Parent accommodation (free) | `ParentService` | `/api/parents/*` | `ParentAccommodationPage` | parent_guest | `test_pg_features.py` | ✅ |
+| Announcements / notice board | `AnnouncementService` | `/api/announcements` | `NoticesPage`, student dashboard | announcement | `test_pg_features.py` | ✅ |
+| Admin dashboard statistics and charts | `DashboardService.admin_summary` | `GET /api/dashboard/admin` | `AdminDashboard` | (aggregates) | `tests/api/test_access_control.py` | ✅ |
+| Student profile fields (email, college, course, year, joining date, food preference, photo) | `StudentService` | `/api/students*` | `StudentsPage` | student | `tests/api` | ✅ |
+| Role access to all new endpoints | service `require_role` / `ensure_self_or_role` | – | – | – | `tests/api/test_access_control.py` | ✅ |

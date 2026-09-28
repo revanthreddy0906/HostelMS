@@ -77,7 +77,14 @@ pip install -r requirements.txt
 python scripts/seed_db.py
 ```
 
-This creates `hms.db` (SQLite, in the project root) with:
+**This resets the database**: it drops every table and recreates the schema,
+so run it again after pulling schema changes (it wipes existing demo data).
+It builds the example hostel from the PG overview document: *Sunrise Boys PG*
+(floors 1–5 with 3/4/5-sharing rooms, a floor-6 Pentahouse, floor-7 parent
+rooms) and *Lotus Girls Hostel*, plus August/September rent (some September
+rent unpaid, so the ₹50/day late fine is visible), deposits, a completed
+vacating settlement, the weekly menu, an AC room billed for September,
+maintenance requests, complaints, a parent stay and notices. Accounts:
 
 | Role | Username | Password |
 |---|---|---|
@@ -87,7 +94,7 @@ This creates `hms.db` (SQLite, in the project root) with:
 | Staff (Cleaner) | `cleaner1` | `Cleaner@123` |
 | Staff (Maintenance) | `maint1` | `Maint@123` |
 | Staff (Technician) | `tech1` | `Tech@123` |
-| Student | `student1` .. `student4` | `Student@123` |
+| Student | `student1` (Arjun, Room 304) .. `student4`, and `s1005` .. `s1015` | `Student@123` |
 
 These are **documented dev-only defaults**, overridable via the
 `HMS_ADMIN_USERNAME` / `HMS_ADMIN_PASSWORD` environment variables. They are

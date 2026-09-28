@@ -156,3 +156,24 @@ demo, while remaining swappable to Postgres/MySQL by changing that one
 environment variable -- SQLAlchemy's ORM layer and all queries are
 dialect-agnostic. This is a documented deviation, not a silent one; see
 `docs/COMPLIANCE_REPORT.md`.
+
+## 15. Features adopted from the PG overview document (deviations from the SRS)
+
+The project owner asked for the features in *Hostel / PG Management System –
+Complete Overview* to be added on top of the SRS, resolving each conflict as
+follows. SRS leave/out-pass/gate-pass, attendance, the four roles and
+Male/Female/Mixed blocks are **kept**; the stack is unchanged.
+
+| Area | SRS | Now implemented | Why |
+|---|---|---|---|
+| Fees (FR-FM-01) | Semester/annual fee structures per room category | Monthly rent by sharing type (3/4/5 Sharing, Pentahouse), a one-time ₹3,000 security deposit, a ₹50/day late fine from the day after the due day (3rd) until paid, and dated payment records. All amounts configurable in Settings. | Owner chose the document's finance model. FR-FM-02 (online payment, mocked gateway) and FR-FM-03 (PDF receipts) are unchanged; FR-RG-01 fee reports still work by date range. |
+| Complaint categories/statuses (FR-CM-01) | Plumbing, Electrical, Cleaning, Internet, Others; Open → In Progress → Resolved → Closed | Food / Mess, Cleanliness, Water, Wi-Fi, Hostel Facilities, Administration, Noise, Suggestions, Other; Pending → Reviewed → In Progress → Resolved. Food feedback (meal, date, 1–5 rating) and anonymous complaints. | Owner chose the document's lists. |
+| Automatic assignment (FR-CM-02) | Complaints auto-assigned to staff | Physical repairs moved to the new Maintenance module, which keeps the automatic assignment (least-loaded staff of the matching designation, same block preferred) with manual reassignment and rejection. | Repairs and general complaints are separate modules in the document; the SRS behaviour is preserved where repairs now live. |
+| Room type (FR-RM-01) | `roomtype` = AC / Non-AC / Deluxe | `roomtype` holds the sharing type; AC is a separate lifecycle (`acstatus`: None → Requested → Active) used for AC electricity billing. Rooms also have a floor, monthly rent and purpose (Student or Parent). | Document's room model; SRS already lists Single/Double/Triple as room types. |
+| Student status | Allocation Active/Vacated/Transferred | Unchanged; the document's ACTIVE/VACATED is derived from allocations (`Student.residentstatus`), no new column. | Owner kept the SRS. |
+
+New supporting tables: `bed`, `setting`, `payment`, `settlement`,
+`maintenance_request`, `food_menu`, `ac_reading`, `parent_guest`,
+`announcement` (the SRS's 12 tables are unchanged apart from added columns;
+`fee_structures` was removed). Existing databases must be recreated with
+`python scripts/seed_db.py`.
